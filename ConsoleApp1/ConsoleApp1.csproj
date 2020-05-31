@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SudokuSolver\SudokuSolver.csproj" />
+    <ProjectReference Include="..\SudokuSolverClasses\SudokuSolverClasses.csproj" />
   </ItemGroup>
 
 </Project>

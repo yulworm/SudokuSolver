@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SudokuSolver", "SudokuSolver\SudokuSolver.csproj", "{A43363A0-C0B4-4152-9D65-7D233F2BFB48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SudokuSolverClasses", "SudokuSolverClasses\SudokuSolverClasses.csproj", "{A43363A0-C0B4-4152-9D65-7D233F2BFB48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XUnitTestSudokuSolver", "XUnitTestSudokuSolver\XUnitTestSudokuSolver.csproj", "{CE3C6243-42E8-4F60-9FCA-FFF264DE3931}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XUnitTestSudokuSolver", "XUnitTestSudokuSolver\XUnitTestSudokuSolver.csproj", "{CE3C6243-42E8-4F60-9FCA-FFF264DE3931}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{F099D28B-189A-4A2E-93D0-8DB97BCE051E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{F099D28B-189A-4A2E-93D0-8DB97BCE051E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
