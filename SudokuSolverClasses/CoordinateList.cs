@@ -93,5 +93,10 @@ namespace SudokuSolver
         {
             return coords.Count;
         }
+
+        public (int, int) get_coordinate(int index)
+        {
+            return (coords[index].Item1, coords[index].Item2);
+        }
     }
 }

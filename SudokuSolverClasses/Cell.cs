@@ -7,7 +7,6 @@ namespace SudokuSolver
     public class Cell : ICloneable
     {
         public int _value { get; set; }
-        //bool _value_is_certain { get; set; }
         public List<int> _possible_values { get; set; }
 
         public Cell() : this(0)
@@ -26,6 +25,16 @@ namespace SudokuSolver
             Cell cloned_cell = new Cell( this._value );
             cloned_cell._possible_values = new List<int>(this._possible_values);
             return cloned_cell;
+        }
+
+        public override string ToString()
+        {
+            string ret_val = $"cell value={_value} possible=";
+            foreach(int pv in _possible_values)
+            {
+                ret_val += $"{pv},";
+            }
+            return ret_val;
         }
     }
 }

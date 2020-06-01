@@ -9,13 +9,21 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            string puzzle = "019600005|607840910|840219307|328196070|076300098|001500623||053002080|060458731|704031050";
-            SudokuGrid grid = new SudokuGrid(puzzle);
+            SudokuGrid grid = new SudokuGrid("000000000|000000000|000000000||000000000|000000000|000000000||000000000|000000000|000000000");
+            grid._grid_cells[0, 0]._possible_values = new List<int> { 1, 2, 3, 4, 5, 6 };
+            grid._grid_cells[0, 1]._possible_values = new List<int> { 2 };
+            grid._grid_cells[0, 2]._possible_values = new List<int> { 2, 5 };
+            grid._grid_cells[1, 1]._possible_values = new List<int> { 3, 9 };
+            grid._grid_cells[2, 2]._possible_values = new List<int> { 2, 3, 9 };
 
-            Console.WriteLine(grid.ToStringFormatted());
+            HashSet<int> search_vals = new HashSet<int> { 2 };
+            CoordinateList search_coords = new CoordinateList(new int[] { 0, 0, 0, 1, 1, 1, 0, 2 });
 
-            Console.WriteLine(SudokuSolverClasses.SudokuHelper.solve_grid(grid).ToStringFormatted());
+            CoordinateList coords_found = SudokuGrid.get_coordinates_where_values_are_possible(grid._grid_cells, search_vals, search_coords);
 
+            search_vals = new HashSet<int> { 2, 5 };
+
+            coords_found = SudokuGrid.get_coordinates_where_values_are_possible(grid._grid_cells, search_vals, search_coords);
         }
     }
 }

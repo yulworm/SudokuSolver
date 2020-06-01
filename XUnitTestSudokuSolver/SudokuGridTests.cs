@@ -209,12 +209,12 @@ namespace XUnitTestSudokuSolver
         {
 
             SudokuGrid grid = new SudokuGrid(puzzle);
-            List<int> values_found = SudokuGrid.get_values_for_coordinates(coords, grid._grid_cells);
+            //List<int> values_found = SudokuGrid.get_values_for_coordinates(coords, grid._grid_cells);
 
-            var firstNotSecond = values_found.Except(expected_values).ToList();
-            var secondNotFirst = expected_values.Except(values_found).ToList();
+            //var firstNotSecond = values_found.Except(expected_values).ToList();
+            //var secondNotFirst = expected_values.Except(values_found).ToList();
 
-            Assert.True(values_found.Count == expected_values.Count && !firstNotSecond.Any() && !secondNotFirst.Any(), message);
+            Assert.True(SudokuHelper.are_lists_equal(SudokuGrid.get_values_for_coordinates(coords, grid._grid_cells), expected_values), message);
         }
 
         public static IEnumerable<object[]> get_possible_values_for_cell_test_input()
@@ -236,12 +236,13 @@ namespace XUnitTestSudokuSolver
         public void get_possible_values_for_cell_test(string puzzle, int x, int y, List<int> expected_values, string message)
         {
             SudokuGrid grid = new SudokuGrid(puzzle);
-            List<int> values_found = SudokuGrid.calculate_possible_values_for_cell(x, y, grid._grid_cells);
+            //List<int> values_found = SudokuGrid.calculate_possible_values_for_cell(x, y, grid._grid_cells);
 
-            var firstNotSecond = values_found.Except(expected_values).ToList();
-            var secondNotFirst = expected_values.Except(values_found).ToList();
+            //var firstNotSecond = values_found.Except(expected_values).ToList();
+            //var secondNotFirst = expected_values.Except(values_found).ToList();
 
-            Assert.True(values_found.Count == expected_values.Count && !firstNotSecond.Any() && !secondNotFirst.Any(), message);
+            //Assert.True(values_found.Count == expected_values.Count && !firstNotSecond.Any() && !secondNotFirst.Any(), message);
+            Assert.True(SudokuHelper.are_lists_equal(SudokuGrid.calculate_possible_values_for_cell(x, y, grid._grid_cells), expected_values), message);
         }
 
         public static IEnumerable<object[]> set_possible_values_of_all_cells_test_input()
@@ -265,12 +266,13 @@ namespace XUnitTestSudokuSolver
             SudokuGrid grid = new SudokuGrid(puzzle);
             grid.set_possible_values_of_all_cells();
 
-            List<int> target_possibles = grid._grid_cells[x, y]._possible_values;
+            //List<int> target_possibles = grid._grid_cells[x, y]._possible_values;
 
-            var firstNotSecond = target_possibles.Except(expected_values).ToList();
-            var secondNotFirst = expected_values.Except(target_possibles).ToList();
+            //var firstNotSecond = target_possibles.Except(expected_values).ToList();
+            //var secondNotFirst = expected_values.Except(target_possibles).ToList();
 
-            Assert.True(target_possibles.Count == expected_values.Count && !firstNotSecond.Any() && !secondNotFirst.Any(), message);
+            //Assert.True(target_possibles.Count == expected_values.Count && !firstNotSecond.Any() && !secondNotFirst.Any(), message);
+            Assert.True(SudokuHelper.are_lists_equal(grid._grid_cells[x, y]._possible_values, expected_values), message);
         }
 
         public static IEnumerable<object[]> remove_value_from_permitted_values_in_cells_test_true_input()
@@ -303,6 +305,45 @@ namespace XUnitTestSudokuSolver
             grid_in._grid_cells = SudokuGrid.remove_value_from_permitted_values_in_cells(grid_in._grid_cells,value_to_remove,affected_cells);
             Assert.True(grid_in.Equals(grid_out),message);
         }
+
+        [Fact]
+        public void get_coordinates_for_all_shapes_test()
+        {
+            (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) lists = SudokuGrid.get_coordinates_for_all_shapes();
+            // row1 = {0,0, 1,0, 2,0, 3,0, 4,0, 5,0, 6,0, 7,0, 8,0}
+            // row2 = {0,1, 1,1, 2,1, 3,1, 4,1, 5,1, 6,1, 7,1, 8,1}
+            // row3 = {0,2, 1,2, 2,2, 3,2, 4,2, 5,2, 6,2, 7,2, 8,2}
+            // row4 = {0,3, 1,3, 2,3, 3,3, 4,3, 5,3, 6,3, 7,3, 8,3}
+            Assert.True(lists.rows[0].Equals(new CoordinateList(new int[] { 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0 })));
+
+            Assert.True(lists.rows[3].Equals(new CoordinateList(new int[] { 0, 3, 1, 3, 2, 3, 3, 3, 4, 3, 5, 3, 6, 3, 7, 3, 8, 3 })));
+        }
+
+        [Fact]
+        public void get_coordinates_where_values_are_possible_test()
+        {
+            SudokuGrid grid = new SudokuGrid("000000000|000000000|000000000||000000000|000000000|000000000||000000000|000000000|000000000");
+            grid._grid_cells[0, 0]._possible_values = new List<int> {1, 2, 3, 4, 5, 6};
+            grid._grid_cells[0, 1]._possible_values = new List<int> { 2 };
+            grid._grid_cells[0, 2]._possible_values = new List<int> { 2, 5 };
+            grid._grid_cells[1, 1]._possible_values = new List<int> { 3, 9 };
+            grid._grid_cells[2, 2]._possible_values = new List<int> { 2, 3, 9 };
+
+            HashSet<int> search_vals = new HashSet<int> {2};
+            CoordinateList search_coords = new CoordinateList(new int[] {0,0, 0,1, 1,1, 0,2, 7,7 });
+
+            CoordinateList coords_found = SudokuGrid.get_coordinates_where_values_are_possible(grid._grid_cells, search_vals, search_coords);
+
+            Assert.True(coords_found.Equals(new CoordinateList(new int[] {0,0, 0,1, 0,2 })));
+            Assert.False(coords_found.Equals(new CoordinateList(new int[] { 0,0 })));
+
+            search_vals = new HashSet<int> { 2, 5 };
+            
+            coords_found = SudokuGrid.get_coordinates_where_values_are_possible(grid._grid_cells, search_vals, search_coords);
+
+            Assert.True(coords_found.Equals(new CoordinateList(new int[] { 0,0, 0,2 })), "Find pair of values");
+        }
+        //        public static CoordinateList get_coordinates_where_values_are_possible(Cell[,] cells, HashSet<int> values_to_look_for, CoordinateList coords_to_check)
 
     }
 

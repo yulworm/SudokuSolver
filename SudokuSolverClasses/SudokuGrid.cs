@@ -121,24 +121,24 @@ namespace SudokuSolver
 
         public static bool is_grid_valid(Cell[,] grid_cells)
         {
-            bool is_valid = true;
+            (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) coords = get_coordinates_for_all_shapes();
 
             for (int i = 0; i < 9; i++)
             {
                 // check column
-                if ( !are_cells_valid( get_all_coordinates_for_column(i, 0), grid_cells ) )
+                if ( !are_cells_valid( coords.cols[i], grid_cells ) )
                 {
                     return false;
                 }
 
                 // check row
-                if (!are_cells_valid(get_all_coordinates_for_row(0, i), grid_cells))
+                if (!are_cells_valid( coords.rows[i], grid_cells))
                 {
                     return false;
                 }
 
                 // check block
-                if (!are_cells_valid(get_all_coordinates_for_block(3*(i%3), i), grid_cells))
+                if (!are_cells_valid( coords.blocks[i], grid_cells))
                 {
                     return false;
                 }
@@ -258,38 +258,16 @@ namespace SudokuSolver
 
         public static List<int> calculate_possible_values_for_cell(int x, int y, Cell[,] cells)
         {
-            //Console.WriteLine($"calculate_possible_values_for_cell ({x},{y})");
             List<int> possible_values = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
             // get all values in the same row 
             possible_values = possible_values.Except( get_values_for_coordinates(get_other_coordinates_for_row(x, y), cells) ).ToList();
 
-            //Console.WriteLine("possible values after row check");
-            //foreach(int v in possible_values)
-            //{
-            //    Console.Write($"{v} ");
-            //}
-            //Console.WriteLine("");
-
             // get all the values in the same column 
             possible_values = possible_values.Except( get_values_for_coordinates(get_other_coordinates_for_column(x, y), cells) ).ToList();
 
-            //Console.WriteLine("possible values after column check");
-            //foreach (int v in possible_values)
-            //{
-            //    Console.Write($"{v} ");
-            //}
-            //Console.WriteLine("");
-
             // get all the values in the same block 
             possible_values = possible_values.Except( get_values_for_coordinates(get_other_coordinates_for_block(x, y), cells) ).ToList();
-
-            //Console.WriteLine("possible values after block check");
-            //foreach (int v in possible_values)
-            //{
-            //    Console.Write($"{v} ");
-            //}
-            //Console.WriteLine("");
 
             return possible_values;
         }
@@ -385,5 +363,75 @@ namespace SudokuSolver
                 Console.WriteLine("");
             }
         }
-     }
+
+        public static (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) get_coordinates_for_all_shapes()
+        {
+            CoordinateList[] rows = new CoordinateList[9];
+            CoordinateList[] cols = new CoordinateList[9];
+            CoordinateList[] blocks = new CoordinateList[9];
+
+            for (int i = 0; i < 9; i++)
+            {
+                rows[i] = get_all_coordinates_for_row(0, i);
+
+                cols[i] = get_all_coordinates_for_column(i, 0);
+
+                blocks[i] = get_all_coordinates_for_block(3 * (i % 3), i);
+            }
+            return (rows: rows, cols: cols, blocks: blocks);
+        }
+
+        //public static Dictionary<int[],List<int>> get_possible_values_for_coordinates(Cell[,] cells, CoordinateList coords)
+        //{
+        //    Dictionary<int[], List<int>> ret_vals = new Dictionary<int[], List<int>>();
+
+        //    foreach((int x, int y) in coords)
+        //    {
+        //        Cell c = cells[x, y];
+        //        if ( c._possible_values.Count > 0 )
+        //        {
+        //            ret_vals.Add(new int[2] {x, y}, c._possible_values);
+        //        }
+        //    }
+        //    return ret_vals;
+        //}
+
+        public static CoordinateList get_coordinates_where_values_are_possible(Cell[,] cells, int value_to_look_for, CoordinateList coords_to_check)
+        {
+            return get_coordinates_where_values_are_possible(cells, new HashSet<int> { value_to_look_for }, coords_to_check);
+        }
+        public static CoordinateList get_coordinates_where_values_are_possible(Cell[,] cells, HashSet<int> values_to_look_for, CoordinateList coords_to_check)
+        {
+            Console.Write($"Starting get_coordinates_where_values_are_possible, looking for({values_to_look_for.Count})=");
+            foreach(int v in values_to_look_for)
+            {
+                Console.Write($"{v},");
+            }
+            Console.WriteLine("");
+
+            CoordinateList where_found = new CoordinateList();
+
+            foreach((int x, int y) in coords_to_check)
+            {
+                Cell c = cells[x,y];
+
+                Console.WriteLine($"({x},{y}) {c} # possible={c._possible_values.Count}");
+                if ( c._possible_values.Count < values_to_look_for.Count )
+                {
+                    continue;
+                }
+
+                IEnumerable<int> common_vals = values_to_look_for.Intersect(c._possible_values);
+                Console.WriteLine($"nbr common_vals={common_vals.Count()}");
+                if (common_vals.Count() == values_to_look_for.Count)
+                {
+                    where_found.Add(x, y);
+                }
+            }
+
+            Console.WriteLine("Ending get_coordinates_where_values_are_possible");
+
+            return where_found;
+        }
+    }
 }
