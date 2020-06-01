@@ -88,5 +88,10 @@ namespace SudokuSolver
         {
             throw new NotImplementedException();
         }
+
+        public int Count()
+        {
+            return coords.Count;
+        }
     }
 }

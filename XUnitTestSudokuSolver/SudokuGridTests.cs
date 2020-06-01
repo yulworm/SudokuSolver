@@ -47,6 +47,46 @@ namespace XUnitTestSudokuSolver
             Assert.False(grid1.Equals(grid2), "Grids created with the different puzzles should not be equal");
         }
 
+        [Fact]
+        public void equals_success_possible()
+        {
+            string puzzle = "004300209005009001070060043006002087190007400050083000600000105003508690042910300";
+            SudokuGrid grid1 = new SudokuGrid(puzzle);
+            SudokuGrid grid2 = new SudokuGrid(puzzle);
+
+            grid1._grid_cells[1, 1]._possible_values = new List<int> { 1, 2, 3 };
+            grid1._grid_cells[2, 2]._possible_values = new List<int> { 2 };
+            grid1._grid_cells[3, 3]._possible_values = new List<int> { 1, 3 };
+            grid1._grid_cells[4, 4]._possible_values = new List<int> { 1, 2, 3 };
+
+            grid2._grid_cells[1, 1]._possible_values = new List<int> { 1, 2, 3 };
+            grid2._grid_cells[2, 2]._possible_values = new List<int> { 2 };
+            grid2._grid_cells[3, 3]._possible_values = new List<int> { 1, 3 };
+            grid2._grid_cells[4, 4]._possible_values = new List<int> { 1, 2, 3 };
+
+            Assert.True(grid1.Equals(grid2), "Grids created with the same puzzles should be equal");
+        }
+
+        [Fact]
+        public void equals_failure_possible()
+        {
+            string puzzle = "004300209005009001070060043006002087190007400050083000600000105003508690042910300";
+            SudokuGrid grid1 = new SudokuGrid(puzzle);
+            SudokuGrid grid2 = new SudokuGrid(puzzle);
+
+            grid1._grid_cells[1, 1]._possible_values = new List<int> { 1, 2, 3 };
+            grid1._grid_cells[2, 2]._possible_values = new List<int> { 2 };
+            grid1._grid_cells[3, 3]._possible_values = new List<int> { 1, 3 };
+            grid1._grid_cells[4, 4]._possible_values = new List<int> { 1, 2, 3 };
+
+            grid1._grid_cells[1, 1]._possible_values = new List<int> { 1, 2, 3, 4 };
+            grid1._grid_cells[2, 2]._possible_values = new List<int> { 2 };
+            grid1._grid_cells[3, 3]._possible_values = new List<int> { 1, 3 };
+            grid1._grid_cells[4, 4]._possible_values = new List<int> { 1, 2, 3 };
+
+            Assert.False(grid1.Equals(grid2), "Grids same puzzles, but different possible values should not be equal");
+        }
+
         [Theory]
         [InlineData("004300209005009001070060043006002087190007400050083000600000105003508690042910300")]
         [InlineData("864371259325849761971265843436192587198657432257483916689734125713528694542916378")]
@@ -196,7 +236,7 @@ namespace XUnitTestSudokuSolver
         public void get_possible_values_for_cell_test(string puzzle, int x, int y, List<int> expected_values, string message)
         {
             SudokuGrid grid = new SudokuGrid(puzzle);
-            List<int> values_found = SudokuGrid.get_possible_values_for_cell(x, y, grid._grid_cells);
+            List<int> values_found = SudokuGrid.calculate_possible_values_for_cell(x, y, grid._grid_cells);
 
             var firstNotSecond = values_found.Except(expected_values).ToList();
             var secondNotFirst = expected_values.Except(values_found).ToList();
@@ -204,7 +244,7 @@ namespace XUnitTestSudokuSolver
             Assert.True(values_found.Count == expected_values.Count && !firstNotSecond.Any() && !secondNotFirst.Any(), message);
         }
 
-        public static IEnumerable<object[]> set_possible_values_of_all_cells_input()
+        public static IEnumerable<object[]> set_possible_values_of_all_cells_test_input()
         {
             yield return new object[] {
                 "019600005|607840910|840219307|328196070|076300098|001500623||053002080|060458731|704031050",
@@ -219,8 +259,8 @@ namespace XUnitTestSudokuSolver
         }
 
         [Theory]
-        [MemberData(nameof(set_possible_values_of_all_cells_input))]
-        public void set_possible_values_of_all_cells(string puzzle, int x, int y, List<int> expected_values, string message)
+        [MemberData(nameof(set_possible_values_of_all_cells_test_input))]
+        public void set_possible_values_of_all_cells_test(string puzzle, int x, int y, List<int> expected_values, string message)
         {
             SudokuGrid grid = new SudokuGrid(puzzle);
             grid.set_possible_values_of_all_cells();
@@ -233,6 +273,37 @@ namespace XUnitTestSudokuSolver
             Assert.True(target_possibles.Count == expected_values.Count && !firstNotSecond.Any() && !secondNotFirst.Any(), message);
         }
 
-    }
+        public static IEnumerable<object[]> remove_value_from_permitted_values_in_cells_test_true_input()
+        {
+            string puzzle = "000000000|000000000|000000000||000000000|000000000|000000000||000000000|000000000|000000000";
+            SudokuGrid grid_in = new SudokuGrid(puzzle);
+
+            grid_in._grid_cells[1, 1]._possible_values = new List<int> { 1, 2, 3 };
+            grid_in._grid_cells[2, 2]._possible_values = new List<int> { 2 };
+            grid_in._grid_cells[3, 3]._possible_values = new List<int> { 1, 3 };
+            grid_in._grid_cells[4, 4]._possible_values = new List<int> { 1, 2, 3 };
+
+            SudokuGrid grid_out = (SudokuGrid)grid_in.Clone();
+            grid_out._grid_cells[1, 1]._possible_values = new List<int> { 1, 3 };
+            grid_out._grid_cells[2, 2]._possible_values = new List<int> ();
+            grid_out._grid_cells[3, 3]._possible_values = new List<int> { 1, 3 };
+
+            yield return new object[] {
+                grid_in,
+                2,
+                new CoordinateList(new int[] {1,1, 2,2, 3,3 }),
+                grid_out,
+                "1"};
+        }
+
+        [Theory]
+        [MemberData(nameof(remove_value_from_permitted_values_in_cells_test_true_input))]
+        public void remove_value_from_permitted_values_in_cells_test_true(SudokuGrid grid_in, int value_to_remove, CoordinateList affected_cells, SudokuGrid grid_out, string message)
+        {
+            grid_in._grid_cells = SudokuGrid.remove_value_from_permitted_values_in_cells(grid_in._grid_cells,value_to_remove,affected_cells);
+            Assert.True(grid_in.Equals(grid_out),message);
+        }
 
     }
+
+}
