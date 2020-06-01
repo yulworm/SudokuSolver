@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using SudokuSolver;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace SudokuSolver
 {
@@ -55,14 +56,19 @@ namespace SudokuSolver
 
         public static Cell[,] narrow_down_possible_values(Cell[,] cells)
         {
-            //cells = find_hidden_singles(cells);
+            Dictionary < (int x, int y), List<int> > hidden = find_hidden_singles(cells);
+
+            foreach ( var pair in hidden )
+            {
+                cells[pair.Key.x, pair.Key.y]._possible_values = pair.Value;
+            }
 
             return cells;
         }
 
-        public static HashSet<(int x, int y, int val)> find_hidden_singles(Cell[,] cells)
+        public static Dictionary<(int x, int y), List<int>> find_hidden_singles(Cell[,] cells)
         {
-            HashSet<(int x, int y, int val)> results = new HashSet<(int x, int y, int val)>();
+            Dictionary <(int x, int y),List<int>> results = new Dictionary<(int x, int y), List<int>>();
 
             (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) coords = SudokuGrid.get_coordinates_for_all_shapes();
 
@@ -75,10 +81,31 @@ namespace SudokuSolver
                     if (found_spots.Count() == 1)
                     {
                         (int x, int y) coord = found_spots.get_coordinate(0);
-                        results.Add((coord.x, coord.y, i));
+                        results.TryAdd((coord.x, coord.y), new List<int>{ i });
                     }
                 }
-                
+
+                foreach (CoordinateList row in coords.rows)
+                {
+                    CoordinateList found_spots = SudokuGrid.get_coordinates_where_values_are_possible(cells, i, row);
+
+                    if (found_spots.Count() == 1)
+                    {
+                        (int x, int y) coord = found_spots.get_coordinate(0);
+                        results.TryAdd((coord.x, coord.y), new List<int> { i });
+                    }
+                }
+
+                foreach (CoordinateList block in coords.blocks)
+                {
+                    CoordinateList found_spots = SudokuGrid.get_coordinates_where_values_are_possible(cells, i, block);
+
+                    if (found_spots.Count() == 1)
+                    {
+                        (int x, int y) coord = found_spots.get_coordinate(0);
+                        results.TryAdd((coord.x, coord.y), new List<int> { i });
+                    }
+                }
             }
 
             return results;
@@ -92,5 +119,18 @@ namespace SudokuSolver
             return a.Count == b.Count && !a_not_b.Any() && !b_not_a.Any();
         }
 
+        public static HashSet<(int, int, int)> find_block_and_rows(Cell[,] cells)
+        {
+            (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) coords = SudokuGrid.get_coordinates_for_all_shapes();
+
+            foreach(CoordinateList block in coords.blocks)
+            {
+                // intersect between block and row to get row within block
+            }
+            // find a value that only exists in a single row of a block
+
+            // add all the coordinates of the row not in the block
+            return null;
+        }
     }
 }
