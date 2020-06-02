@@ -406,12 +406,12 @@ namespace SudokuSolver
         }
         public static CoordinateList get_coordinates_where_values_are_possible(Cell[,] cells, HashSet<int> values_to_look_for, CoordinateList coords_to_check)
         {
-            Console.Write($"Starting get_coordinates_where_values_are_possible, looking for({values_to_look_for.Count})=");
-            foreach(int v in values_to_look_for)
-            {
-                Console.Write($"{v},");
-            }
-            Console.WriteLine("");
+            //Console.Write($"Starting get_coordinates_where_values_are_possible, looking for({values_to_look_for.Count})=");
+            //foreach(int v in values_to_look_for)
+            //{
+            //    Console.Write($"{v},");
+            //}
+            //Console.WriteLine("");
 
             CoordinateList where_found = new CoordinateList();
 
@@ -419,21 +419,21 @@ namespace SudokuSolver
             {
                 Cell c = cells[x,y];
 
-                Console.WriteLine($"({x},{y}) {c} # possible={c._possible_values.Count}");
+                //Console.WriteLine($"({x},{y}) {c} # possible={c._possible_values.Count}");
                 if ( c._possible_values.Count < values_to_look_for.Count )
                 {
                     continue;
                 }
 
                 IEnumerable<int> common_vals = values_to_look_for.Intersect(c._possible_values);
-                Console.WriteLine($"nbr common_vals={common_vals.Count()}");
+                //Console.WriteLine($"nbr common_vals={common_vals.Count()}");
                 if (common_vals.Count() == values_to_look_for.Count)
                 {
                     where_found.Add(x, y);
                 }
             }
 
-            Console.WriteLine("Ending get_coordinates_where_values_are_possible");
+            //Console.WriteLine("Ending get_coordinates_where_values_are_possible");
 
             return where_found;
         }

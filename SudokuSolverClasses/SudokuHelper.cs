@@ -62,7 +62,7 @@ namespace SudokuSolver
                 cells[pair.Key.x, pair.Key.y]._possible_values = pair.Value;
             }
 
-            HashSet<(int, int, int)> block_and_r = find_block_and_row_or_column(cells);
+            HashSet<(int, int, int)> block_and_r = find_pointing_pairs(cells);
             foreach((int x, int y, int val) in block_and_r)
             {
                 cells[x, y]._possible_values.Remove(val);
@@ -125,13 +125,13 @@ namespace SudokuSolver
         }
 
         // return values are x,y coordinate and a value that should be removed from possible values
-        public static HashSet<(int, int, int)> find_block_and_row_or_column(Cell[,] cells)
+        public static HashSet<(int, int, int)> find_pointing_pairs(Cell[,] cells)
         {
             HashSet<(int, int, int)> possible_values_to_remove = new HashSet<(int, int, int)>();
 
-            Console.WriteLine("Starting find_block_and_row_or_column");
-            SudokuGrid g = new SudokuGrid(cells);
-            g.display_all_possible_values();
+            //Console.WriteLine("Starting find_pointing_pairs");
+            //SudokuGrid g = new SudokuGrid(cells);
+            //g.display_all_possible_values();
 
             (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) coords = SudokuGrid.get_coordinates_for_all_shapes();
 
