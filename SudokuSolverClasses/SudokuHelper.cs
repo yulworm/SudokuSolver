@@ -57,10 +57,15 @@ namespace SudokuSolver
         public static Cell[,] narrow_down_possible_values(Cell[,] cells)
         {
             Dictionary < (int x, int y), List<int> > hidden = find_hidden_singles(cells);
-
             foreach ( var pair in hidden )
             {
                 cells[pair.Key.x, pair.Key.y]._possible_values = pair.Value;
+            }
+
+            HashSet<(int, int, int)> block_and_r = find_block_and_row_or_column(cells);
+            foreach((int x, int y, int val) in block_and_r)
+            {
+                cells[x, y]._possible_values.Remove(val);
             }
 
             return cells;
@@ -119,18 +124,107 @@ namespace SudokuSolver
             return a.Count == b.Count && !a_not_b.Any() && !b_not_a.Any();
         }
 
-        public static HashSet<(int, int, int)> find_block_and_rows(Cell[,] cells)
+        // return values are x,y coordinate and a value that should be removed from possible values
+        public static HashSet<(int, int, int)> find_block_and_row_or_column(Cell[,] cells)
         {
+            HashSet<(int, int, int)> possible_values_to_remove = new HashSet<(int, int, int)>();
+
+            Console.WriteLine("Starting find_block_and_row_or_column");
+            SudokuGrid g = new SudokuGrid(cells);
+            g.display_all_possible_values();
+
             (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) coords = SudokuGrid.get_coordinates_for_all_shapes();
 
             foreach(CoordinateList block in coords.blocks)
             {
-                // intersect between block and row to get row within block
-            }
-            // find a value that only exists in a single row of a block
+                CoordinateList[] g_rows = new CoordinateList[3]; // the coordinates in the row outside the block
+                CoordinateList[] g_cols = new CoordinateList[3]; // the coordinates in the column outside the block
+                CoordinateList[] block_rows = new CoordinateList[3];  // the coordinates in the row inside the block
+                CoordinateList[] block_cols = new CoordinateList[3];  // the coordinates in the column inside the block
+                HashSet<int> xs = new HashSet<int>();
+                HashSet<int> ys = new HashSet<int>();
+                foreach((int x, int y) in block)
+                {
+                    xs.Add(x);
+                    ys.Add(y);
+                }
+                for(int i=0; i<3; i++)
+                {
+                    CoordinateList row = SudokuGrid.get_all_coordinates_for_row(xs.ElementAt(i), ys.ElementAt(i));
+                    CoordinateList col = SudokuGrid.get_all_coordinates_for_column(xs.ElementAt(i), ys.ElementAt(i));
+                    g_rows[i] = new CoordinateList(row.Except(block).ToList());
+                    g_cols[i] = new CoordinateList(col.Except(block).ToList());
+                    block_rows[i] = new CoordinateList( block.Intersect(row).ToList() );
+                    block_cols[i] = new CoordinateList( block.Intersect(col).ToList());
+                }
 
-            // add all the coordinates of the row not in the block
-            return null;
+                for(int value = 1; value <=9; value++)
+                {
+                    int unique_to_row = -1; //-1 = initial value, 0-2 = that row is the only one with the value, -9 = the value is in multiple rows
+                    int unique_to_col = -1;
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (SudokuGrid.get_coordinates_where_values_are_possible(cells, value, block_rows[i]).Count() > 0)
+                        {
+                            if (unique_to_row == -1)
+                            {
+                                // this is the first row we have found the value in
+                                unique_to_row = i;
+
+                            } else if (unique_to_row > -1 )
+                            {
+                                // this is the second row that we have found the value in
+                                unique_to_row = -9;
+
+                            } else
+                            {
+                                // it will already be -9
+                            }
+                        }
+
+                        if (SudokuGrid.get_coordinates_where_values_are_possible(cells, value, block_cols[i]).Count() > 0)
+                        {
+                            if (unique_to_col == -1)
+                            {
+                                // this is the first column we have found the value in
+                                unique_to_col = i;
+
+                            }
+                            else if (unique_to_col > -1)
+                            {
+                                // this is the second column that we have found the value in
+                                unique_to_col = -9;
+
+                            }
+                            else
+                            {
+                                // it will already be -9
+                            }
+                        }
+                    }
+
+                    if(unique_to_row > -1)
+                    {
+                        foreach((int x, int y) in g_rows[unique_to_row])
+                        {
+                            possible_values_to_remove.Add((x,y,value));
+                        }
+                        
+                    }
+
+                    if (unique_to_col > -1)
+                    {
+                        foreach ((int x, int y) in g_cols[unique_to_col])
+                        {
+                            possible_values_to_remove.Add((x, y, value));
+                        }
+
+                    }
+                }
+            }
+
+            return possible_values_to_remove;
         }
     }
 }

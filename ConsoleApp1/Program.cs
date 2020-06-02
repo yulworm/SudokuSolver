@@ -9,9 +9,8 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            SudokuGrid grid = new SudokuGrid("000000120240010000901004000400003650000090000036400001000100506000050043072000000");
-            grid = SudokuHelper.solve_grid(grid);
-            Console.WriteLine(grid);
+            SudokuGrid grid = new SudokuGrid("003700050070050800100006004502000000800904006000000902300500007004090060020007400");
+            Console.WriteLine(grid.ToStringFormatted());
         }
     }
 }

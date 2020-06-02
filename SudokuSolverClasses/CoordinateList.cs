@@ -9,6 +9,11 @@ namespace SudokuSolver
     {
         List<(int,int)> coords;
 
+        public CoordinateList(List<(int,int)> cs)
+        {
+            coords = cs;
+        }
+
         public CoordinateList() : this(new int[] { })
         {
             

@@ -29,6 +29,10 @@ namespace SudokuSolver
             }
         }
 
+        public SudokuGrid(Cell[,] cells)
+        {
+            _grid_cells = (Cell[,])cells.Clone();
+        }
         public override string ToString()
         {
             string values = "";
