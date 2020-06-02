@@ -10,7 +10,16 @@
     <PackageReference Include="NLog.Web.AspNetCore" Version="4.9.2" />
   </ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
+		<Content Include="nlog.config">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
+
+
+	<ItemGroup>
     <ProjectReference Include="..\SudokuSolverClasses\SudokuSolverClasses.csproj" />
   </ItemGroup>
 
