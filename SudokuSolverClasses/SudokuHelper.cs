@@ -9,6 +9,7 @@ namespace SudokuSolver
 {
     public class SudokuHelper
     {
+
         public static Cell[,] set_value_for_single_possible_value_cells(Cell[,] grid)
         {
             //Console.WriteLine("set_value_for_single_possible_value_cells begin");

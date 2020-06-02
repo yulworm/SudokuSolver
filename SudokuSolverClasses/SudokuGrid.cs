@@ -24,14 +24,29 @@ namespace SudokuSolver
             for (int i = 0; i < cell_values.Length; i++) {
                 int x = i % 9;
                 int y = i / 9;
-                _grid_cells[x, y] = new Cell( int.Parse(cell_values[i].ToString() ) );
+
+                if (cell_values.Length>=i)
+                {
+                    _grid_cells[x, y] = new Cell(int.Parse(cell_values[i].ToString()));
+                } else
+                {
+                    _grid_cells[x, y] = new Cell();
+                }
+                
                 //Console.WriteLine("Adding cell " + _cell_values[i]);
             }
         }
 
         public SudokuGrid(Cell[,] cells)
         {
-            _grid_cells = (Cell[,])cells.Clone();
+            for (int y = 0; y < 9; y++)
+            {
+                for (int x = 0; x < 9; x++)
+                {
+                    this._grid_cells[x, y] = (Cell)cells[x, y].Clone();
+                }
+            }
+
         }
         public override string ToString()
         {
@@ -103,10 +118,8 @@ namespace SudokuSolver
 
         public object Clone()
         {
-            // this willl copy the values
             SudokuGrid cloned_grid = new SudokuGrid( "" );
 
-            // we need something a bit stronger for the possible values
             for (int y = 0; y < 9; y++)
             {
                 for (int x = 0; x < 9; x++)
@@ -114,7 +127,7 @@ namespace SudokuSolver
                     cloned_grid._grid_cells[x, y] = (Cell)this._grid_cells[x, y].Clone();
                 }
             }
-
+            
             return cloned_grid;
         }
 

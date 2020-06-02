@@ -345,6 +345,24 @@ namespace XUnitTestSudokuSolver
         }
         //        public static CoordinateList get_coordinates_where_values_are_possible(Cell[,] cells, HashSet<int> values_to_look_for, CoordinateList coords_to_check)
 
+        [Fact]
+        public void clone_test()
+        {
+            string puzzle = "140060800085010040907400250030070400209000307008900060000740010601305090700002600";
+            SudokuGrid grid = new SudokuGrid(puzzle);
+            grid.set_possible_values_of_all_cells();
+
+            SudokuGrid grid2 = (SudokuGrid)grid.Clone();
+
+            // the cloned grid is equal to the first
+            Assert.True(grid2.Equals(grid));
+
+            grid2._grid_cells[2, 1]._possible_values.Add(4);
+            Assert.False(grid2.Equals(grid), "changing a possible value in one grid should not also reflect on the other grid");
+
+            grid2 = (SudokuGrid)grid.Clone();
+            Assert.True(grid2.Equals(grid), "setting the grid back to a fresh clone should make them equal again");
+        }
     }
 
 }
