@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using SudokuSolver;
 using Xunit;
 using System.Linq;
+using System;
+using System.Text.RegularExpressions;
 
 namespace XUnitTestSudokuSolver
 {
@@ -187,6 +189,67 @@ namespace XUnitTestSudokuSolver
         {
             CoordinateList coords = SudokuGrid.get_all_coordinates_for_block(x, y);
             Assert.True(coords.Equals(expected_coords),coords.ToString());
+        }
+
+        public static IEnumerable<object[]> get_intersecting_blocks_true_input()
+        {
+            // block1 = {0,0, 1,0, 2,0, 0,1, 1,1, 1,2, 0,2, 1,2, 2,2}
+            // block4 = {0,3, 1,3, 2,3, 0,4, 1,4, 1,4, 0,5, 1,5, 2,5}
+
+            yield return new object[] {
+                new CoordinateList( new int[] {2,3} ),
+                new List<CoordinateList> { new CoordinateList( new int[] {0,3, 1,3, 2,3, 0,4, 1,4, 2,4, 0,5, 1,5, 2,5} ) },
+                "single coordinate"
+            };
+            yield return new object[] {
+                new CoordinateList( new int[] {2,3, 2,8} ),
+                new List<CoordinateList> { new CoordinateList( new int[] {0,3, 1,3, 2,3, 0,4, 1,4, 2,4, 0,5, 1,5, 2,5 } ),
+                                           new CoordinateList( new int[] {0,6, 1,6, 2,6, 0,7, 1,7, 2,7, 0,8, 1,8, 2,8 } ) 
+                                         },
+                "two coordinates in different blocks"
+            };
+            yield return new object[] {
+                new CoordinateList( new int[] {2,3, 2,7, 2,8} ),
+                new List<CoordinateList> { new CoordinateList( new int[] {0,3, 1,3, 2,3, 0,4, 1,4, 2,4, 0,5, 1,5, 2,5 } ),
+                                           new CoordinateList( new int[] {0,6, 1,6, 2,6, 0,7, 1,7, 2,7, 0,8, 1,8, 2,8 } )
+                                         },
+                "three coordinates in two different blocks"
+            };
+            yield return new object[] {
+                new CoordinateList( new int[] {2,6, 2,7, 2,8} ),
+                new List<CoordinateList> { new CoordinateList( new int[] {0,6, 1,6, 2,6, 0,7, 1,7, 2,7, 0,8, 1,8, 2,8 } )
+                                         },
+                "three coordinates in single block"
+            };
+        }
+
+        [Theory]
+        [MemberData(nameof(get_intersecting_blocks_true_input))]
+        public void get_intersecting_blocks_true(CoordinateList reference_cells, List<CoordinateList> expected_coords, string message)
+        {
+            List<CoordinateList> block_coords = SudokuGrid.get_intersecting_blocks(reference_cells);
+
+            bool match_found = false;
+            bool match_found_for_all = true;
+
+            foreach (CoordinateList expected_block in expected_coords)
+            {
+                match_found = false;
+                foreach(CoordinateList found_block in block_coords)
+                {
+                    if( expected_block.Equals(found_block))
+                    {
+                        match_found = true;
+                    }
+                 }
+
+                if (!match_found)
+                {
+                    match_found_for_all = false;
+                }
+            }
+
+            Assert.True(match_found_for_all && (expected_coords.Count() == block_coords.Count()), $"{message}; matches found={match_found_for_all}; expected count={expected_coords.Count()}; found count={block_coords.Count()}");
         }
 
         public static IEnumerable<object[]> get_values_for_coordinates_test_input()

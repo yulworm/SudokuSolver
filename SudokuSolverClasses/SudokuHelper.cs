@@ -4,6 +4,7 @@ using System.Text;
 using SudokuSolver;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace SudokuSolver
 {
@@ -82,7 +83,7 @@ namespace SudokuSolver
             {
                 foreach (CoordinateList col in coords.cols)
                 {
-                    CoordinateList found_spots = SudokuGrid.get_coordinates_where_values_are_possible(cells, i, col);
+                    CoordinateList found_spots = SudokuGrid.get_coordinates_where_value_is_possible(cells, i, col);
 
                     if (found_spots.Count() == 1)
                     {
@@ -93,7 +94,7 @@ namespace SudokuSolver
 
                 foreach (CoordinateList row in coords.rows)
                 {
-                    CoordinateList found_spots = SudokuGrid.get_coordinates_where_values_are_possible(cells, i, row);
+                    CoordinateList found_spots = SudokuGrid.get_coordinates_where_value_is_possible(cells, i, row);
 
                     if (found_spots.Count() == 1)
                     {
@@ -104,7 +105,7 @@ namespace SudokuSolver
 
                 foreach (CoordinateList block in coords.blocks)
                 {
-                    CoordinateList found_spots = SudokuGrid.get_coordinates_where_values_are_possible(cells, i, block);
+                    CoordinateList found_spots = SudokuGrid.get_coordinates_where_value_is_possible(cells, i, block);
 
                     if (found_spots.Count() == 1)
                     {
@@ -166,7 +167,7 @@ namespace SudokuSolver
 
                     for (int i = 0; i < 3; i++)
                     {
-                        if (SudokuGrid.get_coordinates_where_values_are_possible(cells, value, block_rows[i]).Count() > 0)
+                        if (SudokuGrid.get_coordinates_where_value_is_possible(cells, value, block_rows[i]).Count() > 0)
                         {
                             if (unique_to_row == -1)
                             {
@@ -184,7 +185,7 @@ namespace SudokuSolver
                             }
                         }
 
-                        if (SudokuGrid.get_coordinates_where_values_are_possible(cells, value, block_cols[i]).Count() > 0)
+                        if (SudokuGrid.get_coordinates_where_value_is_possible(cells, value, block_cols[i]).Count() > 0)
                         {
                             if (unique_to_col == -1)
                             {
@@ -227,5 +228,110 @@ namespace SudokuSolver
 
             return possible_values_to_remove;
         }
+
+        // finds a value that only appears twice in two block and they line up, so the value cannot be set for the third block
+        // return values are x,y coordinate and a value that should be removed from possible values
+        public static HashSet<(int, int, int)> find_block_block_interactions(Cell[,] cells)
+        {
+            Console.WriteLine("Start find_block_block_interactions");
+            HashSet<(int, int, int)> possible_values_to_remove = new HashSet<(int, int, int)>();
+            (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) coords = SudokuGrid.get_coordinates_for_all_shapes();
+
+            // find a possible value that only exists in 2 cells of more than 1 block
+            for (int i=1; i <=9; i++)
+            {
+                List<CoordinateList> i_twice_in_block = new List<CoordinateList> ();
+                foreach (CoordinateList block_coords in coords.blocks)
+                {
+                    CoordinateList spots_in_block = SudokuGrid.get_coordinates_where_value_is_possible(cells, i, block_coords);
+                    Console.WriteLine($"Found {spots_in_block.Count()} instances for {i}");
+                    if (spots_in_block.Count() == 2)
+                    {
+                        i_twice_in_block.Add(spots_in_block);
+                    }
+                }
+
+                if (i_twice_in_block.Count() >= 2)
+                {
+                    // check if the values line up by row or column
+                    foreach (CoordinateList ref_coords in i_twice_in_block) 
+                    {
+                        List<int> rows = new List<int>();
+                        List<int> cols = new List<int>();
+                        foreach((int x, int y) in ref_coords)
+                        {
+                            rows.Add(y);
+                            cols.Add(x);
+                        }
+                        CoordinateList ref_block_coords = SudokuGrid.get_all_coordinates_for_block(cols[0], rows[0]);
+
+                        foreach (CoordinateList other_coords in i_twice_in_block)
+                        {
+                            bool match_rows = true;
+                            bool match_cols = true;
+
+                            if (!ref_coords.Equals(other_coords))
+                            {
+                                CoordinateList other_block_coords = new CoordinateList();
+                                foreach ((int x, int y) in other_coords)
+                                {
+                                    if (!rows.Contains(y))
+                                    {
+                                        match_rows = false;
+                                    }
+
+                                    if (!cols.Contains(x))
+                                    {
+                                        match_cols = false;
+                                    }
+
+                                    other_block_coords = SudokuGrid.get_all_coordinates_for_block(x, y);
+                                }
+
+                                if (match_cols || match_rows)
+                                {
+                                    Console.WriteLine($"find_block_block_interactions should exclude {i}");
+                                }
+
+                                // if the rows or columns matched, then we want the coordinate of the row or column that is not in either block
+                                if ( match_rows )
+                                {
+                                    CoordinateList row_to_exclude;
+                                    foreach(int row in rows)
+                                    {
+                                        CoordinateList full_row = SudokuGrid.get_all_coordinates_for_row(0, row);
+
+                                        row_to_exclude = new CoordinateList(full_row.Except(ref_block_coords).Except(other_block_coords).ToList());
+                                        foreach((int x, int y) in row_to_exclude)
+                                        {
+                                            possible_values_to_remove.Add((x, y, i));
+                                        }
+                                    }
+                                }
+
+                                if (match_cols)
+                                {
+                                    CoordinateList col_to_exclude;
+                                    foreach (int col in cols)
+                                    {
+                                        CoordinateList full_col = SudokuGrid.get_all_coordinates_for_column(col, 0);
+
+                                        col_to_exclude = new CoordinateList(full_col.Except(ref_block_coords).Except(other_block_coords).ToList());
+                                        foreach ((int x, int y) in col_to_exclude)
+                                        {
+                                            possible_values_to_remove.Add((x, y, i));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            
+            return possible_values_to_remove;
+        }
+        }
     }
-}

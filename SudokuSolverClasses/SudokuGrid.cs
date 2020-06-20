@@ -413,7 +413,7 @@ namespace SudokuSolver
         //    return ret_vals;
         //}
 
-        public static CoordinateList get_coordinates_where_values_are_possible(Cell[,] cells, int value_to_look_for, CoordinateList coords_to_check)
+        public static CoordinateList get_coordinates_where_value_is_possible(Cell[,] cells, int value_to_look_for, CoordinateList coords_to_check)
         {
             return get_coordinates_where_values_are_possible(cells, new HashSet<int> { value_to_look_for }, coords_to_check);
         }
@@ -449,6 +449,23 @@ namespace SudokuSolver
             //Console.WriteLine("Ending get_coordinates_where_values_are_possible");
 
             return where_found;
+        }
+
+        public static List<CoordinateList> get_intersecting_blocks(CoordinateList reference_cells)
+        {
+            List<CoordinateList> return_blocks = new List<CoordinateList>();
+
+            (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) shapes = get_coordinates_for_all_shapes();
+            
+            foreach(CoordinateList block in shapes.blocks)
+            {
+                if(reference_cells.Intersect(block).Count() > 0)
+                {
+                    return_blocks.Add(block);
+                }
+            }
+
+            return return_blocks;
         }
     }
 }

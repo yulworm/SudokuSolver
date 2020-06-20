@@ -97,5 +97,32 @@ namespace XUnitTestSudokuSolver
         {
             Assert.True(SudokuHelper.solve_puzzle(puzzle).Equals(new SudokuGrid(solution)), test_message);
         }
+
+        public static IEnumerable<object[]> find_block_block_interactions_test_input()
+        {
+            yield return new object[] {
+                "003000000|000425000|000001000||000904000|030000000|000076000||000000000|000000000|000000000",
+                new HashSet<(int, int, int)> { (3, 6, 3), (4, 6, 3), (3, 7, 3), (4, 7, 3), (3, 8, 3), (4, 8, 3) },
+                "1"};
+            yield return new object[] {
+                "000000000|000000000|000000002||000000000|560000430|000000000||000000000|002000000|000000000",
+                new HashSet<(int, int, int)> { (3, 3, 2), (4, 3, 2), (5, 3, 2), (3, 5, 2), (4, 5, 2), (5, 5, 2) },
+                "2"};
+        }
+
+        [Theory]
+        [MemberData(nameof(find_block_block_interactions_test_input))]
+        public void find_block_block_interactions_test(string puzzle, HashSet<(int, int, int)> expected_results, string message)
+        {
+            SudokuGrid grid = new SudokuGrid(puzzle);
+            grid.set_possible_values_of_all_cells();
+            HashSet<(int, int, int)> results = SudokuHelper.find_block_block_interactions(grid._grid_cells);
+
+            int a_not_b = results.Except(expected_results).Count();
+            int b_not_a = expected_results.Except(results).Count();
+
+            Assert.True(results.Count == expected_results.Count && a_not_b == 0 && b_not_a == 0, message);
+        }
+
     }
 }
