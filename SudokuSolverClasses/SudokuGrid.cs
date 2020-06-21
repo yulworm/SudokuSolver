@@ -545,7 +545,7 @@ namespace SudokuSolver
                 //Console.WriteLine($" ({x},{y}) {c._possible_values.Count} possible values");
                 if (c._possible_values != null && c._possible_values.Count >= min_values && (max_values == -1 || c._possible_values.Count <= max_values))
                 {
-                    if(min_values==1 && max_values==1) { Console.WriteLine($"({x},{y}) should have 1 possible value. Count={c._possible_values.Count}. value={c._possible_values[0]}"); }
+                    //if(min_values==1 && max_values==1) { Console.WriteLine($"({x},{y}) should have 1 possible value. Count={c._possible_values.Count}. value={c._possible_values[0]}"); }
                     //Console.WriteLine($" ({x},{y}) to {c._possible_values[0]}");
                     return_coords.Add(x, y);
                 }

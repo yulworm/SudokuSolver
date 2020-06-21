@@ -13,32 +13,16 @@ namespace SudokuSolver
 
         public static Cell[,] set_value_for_single_possible_value_cells(Cell[,] grid)
         {
-            Console.WriteLine("set_value_for_single_possible_value_cells begin");
+            //Console.WriteLine("set_value_for_single_possible_value_cells begin");
             CoordinateList singles = SudokuGrid.find_cells_with_a_quantity_of_possible_values(grid, 1, 1);
             foreach ((int x, int y) in singles)
             {
                 //Console.WriteLine($" ({x},{y}) to {c._possible_values[0]}");
                 grid = SudokuGrid.set_cell_value_and_update_possible_values(grid, x, y, grid[x, y]._possible_values[0]);
             }
-            Console.WriteLine("set_value_for_single_possible_value_cells end");
+            //Console.WriteLine("set_value_for_single_possible_value_cells end");
             return grid;
         }
-        //public static Cell[,] set_value_for_single_possible_value_cells(Cell[,] grid)
-        //{
-        //    //Console.WriteLine("set_value_for_single_possible_value_cells begin");
-        //    foreach ((int x, int y) in SudokuGrid.get_all_coordinates_for_grid())
-        //    {
-        //        Cell c = grid[x, y];
-        //        //Console.WriteLine($" ({x},{y}) {c._possible_values.Count} possible values");
-        //        if (c._value == 0 && c._possible_values.Count == 1)
-        //        {
-        //            //Console.WriteLine($" ({x},{y}) to {c._possible_values[0]}");
-        //            grid = SudokuGrid.set_cell_value_and_update_possible_values(grid, x, y, c._possible_values[0]);
-        //        }
-        //    }
-        //    //Console.WriteLine("set_value_for_single_possible_value_cells end");
-        //    return grid;
-        //}
 
         public static SudokuGrid solve_puzzle(string puzzle)
         {
@@ -57,8 +41,8 @@ namespace SudokuSolver
             {
                 grid._grid_cells = set_value_for_single_possible_value_cells(grid._grid_cells);
 
-                Console.WriteLine(grid.ToStringFormatted());
-                grid.display_all_possible_values();
+                //Console.WriteLine(grid.ToStringFormatted());
+                //grid.display_all_possible_values();
 
                 // if naked singles didn't change anything, then try the techniques
                 grid_changed = !grid.Equals(prev_grid);
@@ -91,7 +75,7 @@ namespace SudokuSolver
         {
             foreach ((int x, int y, int val) in instructions)
             {
-                Console.WriteLine($"setting {val} from ({x},{y})");
+                //Console.WriteLine($"setting {val} from ({x},{y})");
 
                 grid.set_cell_value_and_update_possible_values(x, y, val);
             }
@@ -108,7 +92,7 @@ namespace SudokuSolver
         {
             foreach ((int x, int y, int val) in instructions)
             {
-                Console.WriteLine($"removing {val} from ({x},{y})");
+                //Console.WriteLine($"removing {val} from ({x},{y})");
 
                 grid._grid_cells[x, y]._possible_values.Remove(val);
             }
@@ -164,12 +148,12 @@ namespace SudokuSolver
                 }
             }
 
-            Console.Write($"end find_hidden_singles. Results=");
-            foreach ((int x, int y, int val) in results)
-            {
-                Console.Write($" ({x},{y}) v={val},");
-            }
-            Console.WriteLine(";");
+            //Console.Write($"end find_hidden_singles. Results=");
+            //foreach ((int x, int y, int val) in results)
+            //{
+            //    Console.Write($" ({x},{y}) v={val},");
+            //}
+            //Console.WriteLine(";");
 
             return results;
         }
@@ -284,18 +268,18 @@ namespace SudokuSolver
                 }
             }
 
-            Console.Write($"end find_pointing_pairs. Results=");
-            foreach ((int x, int y, int val) in possible_values_to_remove)
-            {
-                Console.Write($" ({x},{y}) v={val},");
-            }
-            Console.WriteLine(";");
+            //Console.Write($"end find_pointing_pairs. Results=");
+            //foreach ((int x, int y, int val) in possible_values_to_remove)
+            //{
+            //    Console.Write($" ({x},{y}) v={val},");
+            //}
+            //Console.WriteLine(";");
             return possible_values_to_remove;
         }
 
         public static HashSet<(int, int, int)> find_block_block_interactions(Cell[,] cells, List<CoordinateList> blocks, List<CoordinateList> lines, int value_to_check)
         {
-            Console.WriteLine($"Start of generic find_block_block_interactions for {value_to_check}. # blocks={blocks.Count()} #lines={lines.Count()}");
+            //Console.WriteLine($"Start of generic find_block_block_interactions for {value_to_check}. # blocks={blocks.Count()} #lines={lines.Count()}");
 
             HashSet<(int, int, int)> possible_values_to_remove = new HashSet<(int, int, int)>();
 
@@ -338,13 +322,13 @@ namespace SudokuSolver
                 }
             }
 
-            Console.WriteLine($"End of generic find_block_block_interactions, returning {possible_values_to_remove.Count} to remove");
+            //Console.WriteLine($"End of generic find_block_block_interactions, returning {possible_values_to_remove.Count} to remove");
             return possible_values_to_remove;
         }
 
         public static HashSet<(int, int, int)> find_block_block_interactions(Cell[,] cells)
         {
-            Console.WriteLine("Start find_block_block_interactions");
+            //Console.WriteLine("Start find_block_block_interactions");
             HashSet<(int, int, int)> possible_values_to_remove = new HashSet<(int, int, int)>();
             (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) shapes = SudokuGrid.get_coordinates_for_all_shapes();
 
@@ -374,13 +358,13 @@ namespace SudokuSolver
                     }
 
                     HashSet<(int, int, int)> to_remove = find_block_block_interactions(cells, row_blocks, rows, i);
-                    Console.WriteLine($"rows # to remove={to_remove.Count}");
+                    //Console.WriteLine($"rows # to remove={to_remove.Count}");
                     possible_values_to_remove.UnionWith(to_remove);
-                    Console.WriteLine($"total # to remove={possible_values_to_remove.Count}");
+                    //Console.WriteLine($"total # to remove={possible_values_to_remove.Count}");
                     to_remove = find_block_block_interactions(cells, col_blocks, cols, i);
-                    Console.WriteLine($"cols # to remove={to_remove.Count}");
+                    //Console.WriteLine($"cols # to remove={to_remove.Count}");
                     possible_values_to_remove.UnionWith(to_remove);
-                    Console.WriteLine($"total # to remove={possible_values_to_remove.Count}");
+                    //Console.WriteLine($"total # to remove={possible_values_to_remove.Count}");
                 }
             }
 
@@ -474,7 +458,7 @@ namespace SudokuSolver
 
             //}
 
-            Console.WriteLine($"End find_block_block_interactions, total # to remove={possible_values_to_remove.Count}");
+            //Console.WriteLine($"End find_block_block_interactions, total # to remove={possible_values_to_remove.Count}");
             return possible_values_to_remove;
         }
 

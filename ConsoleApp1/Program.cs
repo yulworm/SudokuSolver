@@ -24,11 +24,11 @@ namespace ConsoleApp1
             string puzzle = "000000120240010000901004000400003650000090000036400001000100506000050043072000000";
             //string puzzle = "003700050070050800100006004502000000800904006000000902300500007004090060020007400";
             SudokuGrid grid = new SudokuGrid(puzzle);
-            Console.WriteLine(grid.ToStringFormatted());
+            //Console.WriteLine(grid.ToStringFormatted());
             grid.set_possible_values_of_all_cells();
-            grid.display_all_possible_values();
+            //grid.display_all_possible_values();
             SudokuHelper.solve_grid(grid);
-            Console.WriteLine(grid.ToStringFormatted());
+            //Console.WriteLine(grid.ToStringFormatted());
 
             //Console.WriteLine(grid.ToStringFormatted());
             //SudokuGrid grid = new SudokuGrid("000000000|000000000|000000002||000000000|560000430|000000000||000000000|002000000|000000000");
