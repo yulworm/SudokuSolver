@@ -11,33 +11,34 @@ namespace SudokuSolver
     public class SudokuHelper
     {
 
-        //public static Cell[,] set_value_for_single_possible_value_cells(Cell[,] grid)
-        //{
-        //    Console.WriteLine("set_value_for_single_possible_value_cells begin");
-        //    CoordinateList singles = SudokuGrid.find_cells_with_a_quantity_of_possible_values(grid, 1, 1);
-        //    foreach ((int x, int y) in singles) {
-        //        //Console.WriteLine($" ({x},{y}) to {c._possible_values[0]}");
-        //        grid = SudokuGrid.set_cell_value_and_update_possible_values(grid, x, y, grid[x,y]._possible_values[0]);
-        //    }
-        //    Console.WriteLine("set_value_for_single_possible_value_cells end");
-        //    return grid;
-        //}
         public static Cell[,] set_value_for_single_possible_value_cells(Cell[,] grid)
         {
-            //Console.WriteLine("set_value_for_single_possible_value_cells begin");
-            foreach ((int x, int y) in SudokuGrid.get_all_coordinates_for_grid())
+            Console.WriteLine("set_value_for_single_possible_value_cells begin");
+            CoordinateList singles = SudokuGrid.find_cells_with_a_quantity_of_possible_values(grid, 1, 1);
+            foreach ((int x, int y) in singles)
             {
-                Cell c = grid[x, y];
-                //Console.WriteLine($" ({x},{y}) {c._possible_values.Count} possible values");
-                if (c._value == 0 && c._possible_values.Count == 1)
-                {
-                    //Console.WriteLine($" ({x},{y}) to {c._possible_values[0]}");
-                    grid = SudokuGrid.set_cell_value_and_update_possible_values(grid, x, y, c._possible_values[0]);
-                }
+                //Console.WriteLine($" ({x},{y}) to {c._possible_values[0]}");
+                grid = SudokuGrid.set_cell_value_and_update_possible_values(grid, x, y, grid[x, y]._possible_values[0]);
             }
-            //Console.WriteLine("set_value_for_single_possible_value_cells end");
+            Console.WriteLine("set_value_for_single_possible_value_cells end");
             return grid;
         }
+        //public static Cell[,] set_value_for_single_possible_value_cells(Cell[,] grid)
+        //{
+        //    //Console.WriteLine("set_value_for_single_possible_value_cells begin");
+        //    foreach ((int x, int y) in SudokuGrid.get_all_coordinates_for_grid())
+        //    {
+        //        Cell c = grid[x, y];
+        //        //Console.WriteLine($" ({x},{y}) {c._possible_values.Count} possible values");
+        //        if (c._value == 0 && c._possible_values.Count == 1)
+        //        {
+        //            //Console.WriteLine($" ({x},{y}) to {c._possible_values[0]}");
+        //            grid = SudokuGrid.set_cell_value_and_update_possible_values(grid, x, y, c._possible_values[0]);
+        //        }
+        //    }
+        //    //Console.WriteLine("set_value_for_single_possible_value_cells end");
+        //    return grid;
+        //}
 
         public static SudokuGrid solve_puzzle(string puzzle)
         {
@@ -56,8 +57,15 @@ namespace SudokuSolver
             {
                 grid._grid_cells = set_value_for_single_possible_value_cells(grid._grid_cells);
 
-                grid = narrow_down_possible_values(grid);
+                Console.WriteLine(grid.ToStringFormatted());
+                grid.display_all_possible_values();
 
+                // if naked singles didn't change anything, then try the techniques
+                grid_changed = !grid.Equals(prev_grid);
+                if (!grid_changed) {
+                    grid = apply_solving_techniques(grid);
+                } 
+                
                 grid_changed = !grid.Equals(prev_grid);
                 prev_grid = (SudokuGrid) grid.Clone();
                 //grid.display_all_possible_values();
@@ -68,21 +76,40 @@ namespace SudokuSolver
         }
 
 
-        public static SudokuGrid narrow_down_possible_values(SudokuGrid grid)
+        public static SudokuGrid apply_solving_techniques(SudokuGrid grid)
         {
-            grid = narrowing_possible_values(grid, find_hidden_singles(grid._grid_cells), SudokuGrid.tech_hidden_single);
+            grid = set_value_from_instructions(grid, find_hidden_singles(grid._grid_cells), SudokuGrid.tech_hidden_single);
 
-            grid = narrowing_possible_values(grid, find_pointing_pairs(grid._grid_cells), SudokuGrid.tech_pointing_pair);
+            grid = narrowing_possible_values_from_instructions(grid, find_pointing_pairs(grid._grid_cells), SudokuGrid.tech_pointing_pair);
 
-            //grid = narrowing_possible_values(grid, find_block_block_interactions(grid._grid_cells), SudokuGrid.tech_block_block);
+            grid = narrowing_possible_values_from_instructions(grid, find_block_block_interactions(grid._grid_cells), SudokuGrid.tech_block_block);
 
             return grid;
         }
 
-        private static SudokuGrid narrowing_possible_values(SudokuGrid grid, HashSet<(int, int, int)> instructions, int narrowing_method)
+        private static SudokuGrid set_value_from_instructions(SudokuGrid grid, HashSet<(int, int, int)> instructions, int setting_method)
         {
             foreach ((int x, int y, int val) in instructions)
             {
+                Console.WriteLine($"setting {val} from ({x},{y})");
+
+                grid.set_cell_value_and_update_possible_values(x, y, val);
+            }
+
+            if (instructions.Count > 0)
+            {
+                grid._techniques_used[setting_method] = true;
+            }
+
+            return grid;
+        }
+
+        private static SudokuGrid narrowing_possible_values_from_instructions(SudokuGrid grid, HashSet<(int, int, int)> instructions, int narrowing_method)
+        {
+            foreach ((int x, int y, int val) in instructions)
+            {
+                Console.WriteLine($"removing {val} from ({x},{y})");
+
                 grid._grid_cells[x, y]._possible_values.Remove(val);
             }
 
@@ -140,7 +167,7 @@ namespace SudokuSolver
             Console.Write($"end find_hidden_singles. Results=");
             foreach ((int x, int y, int val) in results)
             {
-                Console.Write($" ({x},{y}) v={val}");
+                Console.Write($" ({x},{y}) v={val},");
             }
             Console.WriteLine(";");
 
@@ -237,7 +264,8 @@ namespace SudokuSolver
 
                     if(unique_to_row > -1)
                     {
-                        foreach((int x, int y) in g_rows[unique_to_row])
+                        // we filter the coordinate list to just the ones that should have the value
+                        foreach ((int x, int y) in SudokuGrid.get_coordinates_where_value_is_possible(cells, value, g_rows[unique_to_row]))
                         {
                             possible_values_to_remove.Add((x,y,value));
                         }
@@ -246,7 +274,8 @@ namespace SudokuSolver
 
                     if (unique_to_col > -1)
                     {
-                        foreach ((int x, int y) in g_cols[unique_to_col])
+                        // we filter the coordinate list to just the ones that should have the value
+                        foreach ((int x, int y) in SudokuGrid.get_coordinates_where_value_is_possible(cells, value, g_cols[unique_to_col]))
                         {
                             possible_values_to_remove.Add((x, y, value));
                         }
@@ -255,6 +284,12 @@ namespace SudokuSolver
                 }
             }
 
+            Console.Write($"end find_pointing_pairs. Results=");
+            foreach ((int x, int y, int val) in possible_values_to_remove)
+            {
+                Console.Write($" ({x},{y}) v={val},");
+            }
+            Console.WriteLine(";");
             return possible_values_to_remove;
         }
 

@@ -292,6 +292,11 @@ namespace XUnitTestSudokuSolver
                 2, 3,
                 new List<int> { 4, 5, 6, 7, 8, 9 },
                 "2"};
+            yield return new object[] {
+                "019600005|607840910|840219307|328196070|076300098|001500623||053002080|060458731|704031050",
+                0, 7,
+                new List<int> { 2, 9 },
+                "3"};
         }
 
         [Theory]

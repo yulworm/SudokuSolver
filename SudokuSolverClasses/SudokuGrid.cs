@@ -298,7 +298,8 @@ namespace SudokuSolver
             // get all the values in the same block 
             //possible_values = possible_values.Except( get_values_for_coordinates(get_other_coordinates_for_block(x, y), cells) ).ToList();
 
-            return possible_values.Except(get_values_for_coordinates(get_interacting_cells(x, y), cells)).ToList() ;
+            possible_values = possible_values.Except(get_values_for_coordinates(get_interacting_cells(x, y), cells)).ToList() ;
+            return possible_values;
         }
 
         public void set_possible_values_of_all_cells()
@@ -323,13 +324,14 @@ namespace SudokuSolver
         {
             //Console.WriteLine($"set_cell_value_and_update_possible_values ({x},{y}) {new_value}");
             grid[x, y]._value = new_value;
+            grid[x, y]._possible_values.Clear();
 
-            // we use get_all so that we also update the possible values of the target cell as well
-            grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_all_coordinates_for_row(x,y));
+            grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_interacting_cells(x, y));
+            //grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_all_coordinates_for_row(x,y));
 
-            grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_other_coordinates_for_column(x, y));
+            //grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_other_coordinates_for_column(x, y));
 
-            grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_other_coordinates_for_block(x, y));
+            //grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_other_coordinates_for_block(x, y));
 
             return grid;
         }
@@ -384,12 +386,15 @@ namespace SudokuSolver
             foreach((int x, int y) in get_all_coordinates_for_grid())
             {
                 Cell c = this._grid_cells[x, y];
-                Console.Write($"({x},{y})=");
-                foreach(int pv in c._possible_values)
+                if (c._possible_values.Count > 0)
                 {
-                    Console.Write($"{pv},");
+                    Console.Write($"({x},{y})=");
+                    foreach (int pv in c._possible_values)
+                    {
+                        Console.Write($"{pv},");
+                    }
+                    Console.WriteLine("");
                 }
-                Console.WriteLine("");
             }
         }
 

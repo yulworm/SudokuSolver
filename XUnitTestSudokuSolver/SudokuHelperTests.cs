@@ -8,20 +8,20 @@ namespace XUnitTestSudokuSolver
 {
     public class SudokuHelperTests
     {
-        //[Fact]
-        //public void find_hidden_singles_test()
-        //{
-        //    SudokuGrid grid = new SudokuGrid("000000000|000200000|000000000||000060000|000000000|000080000||000000000|000000000|000002000");
-        //    grid.set_possible_values_of_all_cells();
+        [Fact]
+        public void find_hidden_singles_test()
+        {
+            SudokuGrid grid = new SudokuGrid("000000000|000200000|000000000||000060000|000000000|000080000||000000000|000000000|000002000");
+            grid.set_possible_values_of_all_cells();
 
-        //    HashSet<(int, int, int)> results = SudokuHelper.find_hidden_singles(grid._grid_cells);
-        //    HashSet<(int, int, int)> expected_results = new HashSet<(int, int, int)> { (4,4,2) };
+            HashSet<(int, int, int)> results = SudokuHelper.find_hidden_singles(grid._grid_cells);
+            HashSet<(int, int, int)> expected_results = new HashSet<(int, int, int)> { (4, 4, 2) };
 
-        //    int a_not_b = results.Except(expected_results).Count();
-        //    int b_not_a = expected_results.Except(results).Count();
+            int a_not_b = results.Except(expected_results).Count();
+            int b_not_a = expected_results.Except(results).Count();
 
-        //    Assert.True(results.Count == expected_results.Count && a_not_b == 0 && b_not_a == 0);
-        //}
+            Assert.True(results.Count == expected_results.Count && a_not_b == 0 && b_not_a == 0);
+        }
 
         [Fact]
         public void find_pointing_pair_test()
@@ -72,7 +72,7 @@ namespace XUnitTestSudokuSolver
         [InlineData("000000120240010000901004000400003650000090000036400001000100506000050043072000000", "687539124243718965951264387419873652725691438836425791394182576168957243572346819", "Naked and hidden singles")]
         [InlineData("003700050070050800100006004502000000800904006000000902300500007004090060020007400", "483712659 276459813 159836724 592673148 831924576 647185932 368541297 714298365 925367481", "Block and row or column")]
         [InlineData("140060800085010040907400250030070400209000307008900060000740010601305090700002600", "142569873385217946967438251536871429219654387478923165893746512621385794754192638", "unknown")]
-        [InlineData("000003948309008500004000002500900000007010600000007001600000100008700209175300000", "003000000|000425000|000001000||000904000|030000000|000076000||000000000|000000000|000000000", "Block Block 1")]
+        [InlineData("000003948309008500004000002500900000007010600000007001600000100008700209175300000", "721653948|369428517|854179362||513986724|987214635|246537891||692845173|438761259|175392486", "Block Block 1")]
         public void solve_puzzle_test_true(string puzzle, string solution, string test_message)
         {
             SudokuGrid actual_result = SudokuHelper.solve_puzzle(puzzle);
