@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks.Dataflow;
+using System.Net.Http.Headers;
 
 namespace SudokuSolver
 {
@@ -15,8 +16,18 @@ namespace SudokuSolver
         public static int min_y = 0;
         public static int max_y = 8;
 
+        public const int tech_hidden_single = 0;
+        public const int tech_pointing_pair = 1;
+        public const int tech_block_block = 2;
+        public const int tech_x_wing = 3;
+        public const int tech_xy_wing = 4;
+        public const int tech_swordfish = 5;
+        public const int tech_unique_rectangle = 6;
+        public bool[] _techniques_used { get; set; }
+
         public SudokuGrid( string puzzle ) {
             _grid_cells = new Cell[9, 9];
+            _techniques_used = new bool[7];
 
             Regex digitsOnly = new Regex(@"[^\d]");
             string cell_values = digitsOnly.Replace(puzzle, "");
@@ -46,8 +57,9 @@ namespace SudokuSolver
                     this._grid_cells[x, y] = (Cell)cells[x, y].Clone();
                 }
             }
-
+            _techniques_used = new bool[7];
         }
+
         public override string ToString()
         {
             string values = "";
@@ -278,15 +290,15 @@ namespace SudokuSolver
             List<int> possible_values = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
             // get all values in the same row 
-            possible_values = possible_values.Except( get_values_for_coordinates(get_other_coordinates_for_row(x, y), cells) ).ToList();
+            //possible_values = possible_values.Except( get_values_for_coordinates(get_other_coordinates_for_row(x, y), cells) ).ToList();
 
             // get all the values in the same column 
-            possible_values = possible_values.Except( get_values_for_coordinates(get_other_coordinates_for_column(x, y), cells) ).ToList();
+            //possible_values = possible_values.Except( get_values_for_coordinates(get_other_coordinates_for_column(x, y), cells) ).ToList();
 
             // get all the values in the same block 
-            possible_values = possible_values.Except( get_values_for_coordinates(get_other_coordinates_for_block(x, y), cells) ).ToList();
+            //possible_values = possible_values.Except( get_values_for_coordinates(get_other_coordinates_for_block(x, y), cells) ).ToList();
 
-            return possible_values;
+            return possible_values.Except(get_values_for_coordinates(get_interacting_cells(x, y), cells)).ToList() ;
         }
 
         public void set_possible_values_of_all_cells()
@@ -312,7 +324,7 @@ namespace SudokuSolver
             //Console.WriteLine($"set_cell_value_and_update_possible_values ({x},{y}) {new_value}");
             grid[x, y]._value = new_value;
 
-            // we use get_all so that we also update the possible values of the target cell
+            // we use get_all so that we also update the possible values of the target cell as well
             grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_all_coordinates_for_row(x,y));
 
             grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_other_coordinates_for_column(x, y));
@@ -381,6 +393,22 @@ namespace SudokuSolver
             }
         }
 
+        /*
+         * the following is the order of the index of each, row, column, and block
+         * 
+             012 345 678
+            0   |   |
+            1 0 | 1 | 2
+            2   |   |
+             ---+---+---
+            3   |   |
+            4 3 | 4 | 5
+            5   |   |
+             ---+---+---
+            6   |   |
+            7 6 | 7 | 8
+            8   |   |
+         */
         public static (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) get_coordinates_for_all_shapes()
         {
             CoordinateList[] rows = new CoordinateList[9];
@@ -417,7 +445,13 @@ namespace SudokuSolver
         {
             return get_coordinates_where_values_are_possible(cells, new HashSet<int> { value_to_look_for }, coords_to_check);
         }
-        public static CoordinateList get_coordinates_where_values_are_possible(Cell[,] cells, HashSet<int> values_to_look_for, CoordinateList coords_to_check)
+        public static CoordinateList get_coordinates_where_values_are_possible(Cell[,] cells, HashSet<int> values_to_look_for, CoordinateList coords_to_check) {
+            return get_coordinates_where_possible_values_match(cells, values_to_look_for, coords_to_check, match_type_includes);
+        }
+        public const int match_type_equals = 1;
+        public const int match_type_includes = 2;
+        public const int match_type_intersects = 3;
+        public static CoordinateList get_coordinates_where_possible_values_match(Cell[,] cells, HashSet<int> values_to_look_for, CoordinateList coords_to_check, int match_type)
         {
             //Console.Write($"Starting get_coordinates_where_values_are_possible, looking for({values_to_look_for.Count})=");
             //foreach(int v in values_to_look_for)
@@ -425,25 +459,49 @@ namespace SudokuSolver
             //    Console.Write($"{v},");
             //}
             //Console.WriteLine("");
+            int min_values = 0;
+            int max_values = -1;
 
+            switch(match_type)
+            {
+                case match_type_equals:
+                    min_values = values_to_look_for.Count;
+                    max_values = values_to_look_for.Count;
+                    break;
+                case match_type_includes:
+                    min_values = values_to_look_for.Count;
+                    break;
+                case match_type_intersects:
+                    min_values = 1;
+                    break;
+            }
+                
             CoordinateList where_found = new CoordinateList();
 
-            foreach((int x, int y) in coords_to_check)
+            foreach((int x, int y) in find_cells_with_a_quantity_of_possible_values(cells, min_values, max_values, coords_to_check))
             {
                 Cell c = cells[x,y];
 
                 //Console.WriteLine($"({x},{y}) {c} # possible={c._possible_values.Count}");
-                if ( c._possible_values.Count < values_to_look_for.Count )
-                {
-                    continue;
-                }
+                //if ( c._possible_values.Count < values_to_look_for.Count )
+                //{
+                //    continue;
+                //}
 
                 IEnumerable<int> common_vals = values_to_look_for.Intersect(c._possible_values);
-                //Console.WriteLine($"nbr common_vals={common_vals.Count()}");
+
                 if (common_vals.Count() == values_to_look_for.Count)
                 {
+                    // everything being found always counts as a win
                     where_found.Add(x, y);
-                }
+                } else 
+                {
+                    if (common_vals.Count() > 0 && match_type == match_type_intersects)
+                    {
+                        where_found.Add(x, y);
+                    }
+                } 
+                //Console.WriteLine($"nbr common_vals={common_vals.Count()}");
             }
 
             //Console.WriteLine("Ending get_coordinates_where_values_are_possible");
@@ -467,5 +525,44 @@ namespace SudokuSolver
 
             return return_blocks;
         }
+
+        public static CoordinateList find_cells_with_a_quantity_of_possible_values (Cell[,] grid, int min_values, int max_values) { 
+            return find_cells_with_a_quantity_of_possible_values(grid, min_values, max_values, SudokuGrid.get_all_coordinates_for_grid());
+        }
+        
+        // max_values = -1 means that there is no max
+        public static CoordinateList find_cells_with_a_quantity_of_possible_values (Cell[,] grid, int min_values, int max_values, CoordinateList coords_to_search) {
+            CoordinateList return_coords = new CoordinateList();
+                        
+            foreach ((int x, int y) in coords_to_search )
+            {
+                Cell c = grid[x, y];
+                //Console.WriteLine($" ({x},{y}) {c._possible_values.Count} possible values");
+                if (c._possible_values != null && c._possible_values.Count >= min_values && (max_values == -1 || c._possible_values.Count <= max_values))
+                {
+                    if(min_values==1 && max_values==1) { Console.WriteLine($"({x},{y}) should have 1 possible value. Count={c._possible_values.Count}. value={c._possible_values[0]}"); }
+                    //Console.WriteLine($" ({x},{y}) to {c._possible_values[0]}");
+                    return_coords.Add(x, y);
+                }
+            }
+
+            return return_coords;
+        }
+
+        public static CoordinateList get_interacting_cells(int x, int y)
+        {
+            return get_interacting_cells(x, y, get_all_coordinates_for_grid());
+        }
+
+        public static CoordinateList get_interacting_cells(int x, int y, CoordinateList coords_to_search)
+        {
+            CoordinateList interacting_cells = new CoordinateList(
+                       get_other_coordinates_for_block(x, y).
+                Concat(get_other_coordinates_for_column(x, y)).
+                Concat(get_other_coordinates_for_row(x, y)).ToList());
+
+            return new CoordinateList( interacting_cells.Intersect(coords_to_search).ToList() );
+        }
+
     }
 }

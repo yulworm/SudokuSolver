@@ -277,7 +277,7 @@ namespace XUnitTestSudokuSolver
             //var firstNotSecond = values_found.Except(expected_values).ToList();
             //var secondNotFirst = expected_values.Except(values_found).ToList();
 
-            Assert.True(SudokuHelper.are_lists_equal(SudokuGrid.get_values_for_coordinates(coords, grid._grid_cells), expected_values), message);
+            Assert.True(SudokuHelper.are_int_lists_equal(SudokuGrid.get_values_for_coordinates(coords, grid._grid_cells), expected_values), message);
         }
 
         public static IEnumerable<object[]> get_possible_values_for_cell_test_input()
@@ -305,7 +305,7 @@ namespace XUnitTestSudokuSolver
             //var secondNotFirst = expected_values.Except(values_found).ToList();
 
             //Assert.True(values_found.Count == expected_values.Count && !firstNotSecond.Any() && !secondNotFirst.Any(), message);
-            Assert.True(SudokuHelper.are_lists_equal(SudokuGrid.calculate_possible_values_for_cell(x, y, grid._grid_cells), expected_values), message);
+            Assert.True(SudokuHelper.are_int_lists_equal(SudokuGrid.calculate_possible_values_for_cell(x, y, grid._grid_cells), expected_values), message);
         }
 
         public static IEnumerable<object[]> set_possible_values_of_all_cells_test_input()
@@ -335,7 +335,7 @@ namespace XUnitTestSudokuSolver
             //var secondNotFirst = expected_values.Except(target_possibles).ToList();
 
             //Assert.True(target_possibles.Count == expected_values.Count && !firstNotSecond.Any() && !secondNotFirst.Any(), message);
-            Assert.True(SudokuHelper.are_lists_equal(grid._grid_cells[x, y]._possible_values, expected_values), message);
+            Assert.True(SudokuHelper.are_int_lists_equal(grid._grid_cells[x, y]._possible_values, expected_values), message);
         }
 
         public static IEnumerable<object[]> remove_value_from_permitted_values_in_cells_test_true_input()
