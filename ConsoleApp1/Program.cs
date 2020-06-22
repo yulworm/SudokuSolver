@@ -21,31 +21,31 @@ namespace ConsoleApp1
             //    app.Run();
             //}
 
-            string puzzle = "000000120240010000901004000400003650000090000036400001000100506000050043072000000";
+            //string puzzle = "000000120240010000901004000400003650000090000036400001000100506000050043072000000";
             //string puzzle = "003700050070050800100006004502000000800904006000000902300500007004090060020007400";
-            SudokuGrid grid = new SudokuGrid(puzzle);
+            //SudokuGrid grid = new SudokuGrid(puzzle);
             //Console.WriteLine(grid.ToStringFormatted());
-            grid.set_possible_values_of_all_cells();
+            //grid.set_possible_values_of_all_cells();
             //grid.display_all_possible_values();
-            SudokuHelper.solve_grid(grid);
+            //SudokuHelper.solve_grid(grid);
             //Console.WriteLine(grid.ToStringFormatted());
 
             //Console.WriteLine(grid.ToStringFormatted());
             //SudokuGrid grid = new SudokuGrid("000000000|000000000|000000002||000000000|560000430|000000000||000000000|002000000|000000000");
 
 
-            //SudokuGrid grid = new SudokuGrid("003000000|000425000|000001000||000904000|030000000|000076000||000000000|000000000|000000000");
+            SudokuGrid grid = new SudokuGrid("879126354|136954782|542873060||680090040|720468010|490030806||968345000|257619438|314287695");
             //SudokuHelper.solve_grid(grid);
 
-            //grid.set_possible_values_of_all_cells();
+            grid.set_possible_values_of_all_cells();
             //Console.WriteLine(grid.ToStringFormatted());
 
-            //HashSet<(int, int, int)> results = SudokuHelper.find_block_block_interactions(grid._grid_cells);
+            HashSet<(int, int, int)> results = SudokuHelper.find_x_y_wing(grid._grid_cells);
             //Console.WriteLine($"# results= {results.Count}, results={SudokuHelper.format_coord_and_value_hashset(results)};");
             //Console.WriteLine(grid.ToStringFormatted());
             //grid.display_all_possible_values();
             //grid.set_possible_values_of_all_cells();
-            //HashSet<(int, int, int)> results = SudokuHelper.find_block_block_interactions(grid._grid_cells);
+            //HashSet<(int, int, int)> results = SudokuHelper.find_block_block_interactions_generic(grid._grid_cells);
             //foreach((int x, int y, int val) in results)
             //{
             //    Console.WriteLine($"excluded {val} at ({x},{y})");

@@ -448,15 +448,15 @@ namespace SudokuSolver
 
         public static CoordinateList get_coordinates_where_value_is_possible(Cell[,] cells, int value_to_look_for, CoordinateList coords_to_check)
         {
-            return get_coordinates_where_values_are_possible(cells, new HashSet<int> { value_to_look_for }, coords_to_check);
+            return get_coordinates_where_values_are_possible(cells, new List<int> { value_to_look_for }, coords_to_check);
         }
-        public static CoordinateList get_coordinates_where_values_are_possible(Cell[,] cells, HashSet<int> values_to_look_for, CoordinateList coords_to_check) {
+        public static CoordinateList get_coordinates_where_values_are_possible(Cell[,] cells, List<int> values_to_look_for, CoordinateList coords_to_check) {
             return get_coordinates_where_possible_values_match(cells, values_to_look_for, coords_to_check, match_type_includes);
         }
         public const int match_type_equals = 1;
         public const int match_type_includes = 2;
         public const int match_type_intersects = 3;
-        public static CoordinateList get_coordinates_where_possible_values_match(Cell[,] cells, HashSet<int> values_to_look_for, CoordinateList coords_to_check, int match_type)
+        public static CoordinateList get_coordinates_where_possible_values_match(Cell[,] cells, List<int> values_to_look_for, CoordinateList coords_to_check, int match_type)
         {
             //Console.Write($"Starting get_coordinates_where_values_are_possible, looking for({values_to_look_for.Count})=");
             //foreach(int v in values_to_look_for)

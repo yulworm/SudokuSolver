@@ -11,16 +11,16 @@ namespace SudokuSolver
     public class SudokuHelper
     {
 
-        public static Cell[,] set_value_for_single_possible_value_cells(Cell[,] grid)
+        public static Cell[,] set_value_for_naked_singles(Cell[,] grid)
         {
-            //Console.WriteLine("set_value_for_single_possible_value_cells begin");
+            //Console.WriteLine("set_value_for_naked_singles begin");
             CoordinateList singles = SudokuGrid.find_cells_with_a_quantity_of_possible_values(grid, 1, 1);
             foreach ((int x, int y) in singles)
             {
                 //Console.WriteLine($" ({x},{y}) to {c._possible_values[0]}");
                 grid = SudokuGrid.set_cell_value_and_update_possible_values(grid, x, y, grid[x, y]._possible_values[0]);
             }
-            //Console.WriteLine("set_value_for_single_possible_value_cells end");
+            //Console.WriteLine("set_value_for_naked_singles end");
             return grid;
         }
 
@@ -39,7 +39,7 @@ namespace SudokuSolver
 
             while ( !grid.is_grid_solved() && grid_changed )
             {
-                grid._grid_cells = set_value_for_single_possible_value_cells(grid._grid_cells);
+                grid._grid_cells = set_value_for_naked_singles(grid._grid_cells);
 
                 //Console.WriteLine(grid.ToStringFormatted());
                 //grid.display_all_possible_values();
@@ -67,6 +67,8 @@ namespace SudokuSolver
             grid = narrowing_possible_values_from_instructions(grid, find_pointing_pairs(grid._grid_cells), SudokuGrid.tech_pointing_pair);
 
             grid = narrowing_possible_values_from_instructions(grid, find_block_block_interactions(grid._grid_cells), SudokuGrid.tech_block_block);
+
+            grid = narrowing_possible_values_from_instructions(grid, find_x_y_wing(grid._grid_cells), SudokuGrid.tech_xy_wing);
 
             return grid;
         }
@@ -148,12 +150,7 @@ namespace SudokuSolver
                 }
             }
 
-            //Console.Write($"end find_hidden_singles. Results=");
-            //foreach ((int x, int y, int val) in results)
-            //{
-            //    Console.Write($" ({x},{y}) v={val},");
-            //}
-            //Console.WriteLine(";");
+            //Console.WriteLine($"end find_hidden_singles. Results={format_coord_and_value_hashset(results)}");
 
             return results;
         }
@@ -268,18 +265,14 @@ namespace SudokuSolver
                 }
             }
 
-            //Console.Write($"end find_pointing_pairs. Results=");
-            //foreach ((int x, int y, int val) in possible_values_to_remove)
-            //{
-            //    Console.Write($" ({x},{y}) v={val},");
-            //}
-            //Console.WriteLine(";");
+            //Console.WriteLine($"end find_pointing_pairs. Results={format_coord_and_value_hashset(possible_values_to_remove)}");
+
             return possible_values_to_remove;
         }
 
-        public static HashSet<(int, int, int)> find_block_block_interactions(Cell[,] cells, List<CoordinateList> blocks, List<CoordinateList> lines, int value_to_check)
+        public static HashSet<(int, int, int)> find_block_block_interactions_generic(Cell[,] cells, List<CoordinateList> blocks, List<CoordinateList> lines, int value_to_check)
         {
-            //Console.WriteLine($"Start of generic find_block_block_interactions for {value_to_check}. # blocks={blocks.Count()} #lines={lines.Count()}");
+            //Console.WriteLine($"Start of generic find_block_block_interactions_generic for {value_to_check}. # blocks={blocks.Count()} #lines={lines.Count()}");
 
             HashSet<(int, int, int)> possible_values_to_remove = new HashSet<(int, int, int)>();
 
@@ -322,13 +315,13 @@ namespace SudokuSolver
                 }
             }
 
-            //Console.WriteLine($"End of generic find_block_block_interactions, returning {possible_values_to_remove.Count} to remove");
+            //Console.WriteLine($"End of generic find_block_block_interactions_generic, returning {possible_values_to_remove.Count} to remove");
             return possible_values_to_remove;
         }
 
         public static HashSet<(int, int, int)> find_block_block_interactions(Cell[,] cells)
         {
-            //Console.WriteLine("Start find_block_block_interactions");
+            //Console.WriteLine("Start find_block_block_interactions_generic");
             HashSet<(int, int, int)> possible_values_to_remove = new HashSet<(int, int, int)>();
             (CoordinateList[] rows, CoordinateList[] cols, CoordinateList[] blocks) shapes = SudokuGrid.get_coordinates_for_all_shapes();
 
@@ -357,114 +350,106 @@ namespace SudokuSolver
                         col_blocks.Add(shapes.blocks[3 * b + a]);
                     }
 
-                    HashSet<(int, int, int)> to_remove = find_block_block_interactions(cells, row_blocks, rows, i);
+                    HashSet<(int, int, int)> to_remove = find_block_block_interactions_generic(cells, row_blocks, rows, i);
                     //Console.WriteLine($"rows # to remove={to_remove.Count}");
                     possible_values_to_remove.UnionWith(to_remove);
                     //Console.WriteLine($"total # to remove={possible_values_to_remove.Count}");
-                    to_remove = find_block_block_interactions(cells, col_blocks, cols, i);
+                    to_remove = find_block_block_interactions_generic(cells, col_blocks, cols, i);
                     //Console.WriteLine($"cols # to remove={to_remove.Count}");
                     possible_values_to_remove.UnionWith(to_remove);
                     //Console.WriteLine($"total # to remove={possible_values_to_remove.Count}");
                 }
             }
 
-            //    List<CoordinateList> i_twice_in_block = new List<CoordinateList> ();
-            //    foreach (CoordinateList block_coords in coords.blocks)
-            //    {
-            //        CoordinateList spots_in_block = SudokuGrid.get_coordinates_where_value_is_possible(cells, i, block_coords);
-            //        Console.WriteLine($"Found {spots_in_block.Count()} instances for {i}");
-            //        if (spots_in_block.Count() == 2)
-            //        {
-            //            i_twice_in_block.Add(spots_in_block);
-            //        }
-            //    }
-
-            //    if (i_twice_in_block.Count() >= 2)
-            //    {
-            //        // check if the values line up by row or column
-            //        foreach (CoordinateList ref_coords in i_twice_in_block) 
-            //        {
-            //            List<int> rows = new List<int>();
-            //            List<int> cols = new List<int>();
-            //            foreach((int x, int y) in ref_coords)
-            //            {
-            //                rows.Add(y);
-            //                cols.Add(x);
-            //            }
-            //            CoordinateList ref_block_coords = SudokuGrid.get_all_coordinates_for_block(cols[0], rows[0]);
-
-            //            foreach (CoordinateList other_coords in i_twice_in_block)
-            //            {
-            //                bool match_rows = true;
-            //                bool match_cols = true;
-
-            //                if (!ref_coords.Equals(other_coords))
-            //                {
-            //                    CoordinateList other_block_coords = new CoordinateList();
-            //                    foreach ((int x, int y) in other_coords)
-            //                    {
-            //                        if (!rows.Contains(y))
-            //                        {
-            //                            match_rows = false;
-            //                        }
-
-            //                        if (!cols.Contains(x))
-            //                        {
-            //                            match_cols = false;
-            //                        }
-
-            //                        other_block_coords = SudokuGrid.get_all_coordinates_for_block(x, y);
-            //                    }
-
-            //                    if (match_cols || match_rows)
-            //                    {
-            //                        Console.WriteLine($"find_block_block_interactions should exclude {i}");
-            //                    }
-
-            //                    // if the rows or columns matched, then we want the coordinate of the row or column that is not in either block
-            //                    if ( match_rows )
-            //                    {
-            //                        CoordinateList row_to_exclude;
-            //                        foreach(int row in rows)
-            //                        {
-            //                            CoordinateList full_row = SudokuGrid.get_all_coordinates_for_row(0, row);
-
-            //                            row_to_exclude = new CoordinateList(full_row.Except(ref_block_coords).Except(other_block_coords).ToList());
-            //                            foreach((int x, int y) in row_to_exclude)
-            //                            {
-            //                                possible_values_to_remove.Add((x, y, i));
-            //                            }
-            //                        }
-            //                    }
-
-            //                    if (match_cols)
-            //                    {
-            //                        CoordinateList col_to_exclude;
-            //                        foreach (int col in cols)
-            //                        {
-            //                            CoordinateList full_col = SudokuGrid.get_all_coordinates_for_column(col, 0);
-
-            //                            col_to_exclude = new CoordinateList(full_col.Except(ref_block_coords).Except(other_block_coords).ToList());
-            //                            foreach ((int x, int y) in col_to_exclude)
-            //                            {
-            //                                possible_values_to_remove.Add((x, y, i));
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //            }
-            //        }
-            //    }
-
-            //}
-
-            //Console.WriteLine($"End find_block_block_interactions, total # to remove={possible_values_to_remove.Count}");
+            //Console.WriteLine($"End find_block_block_interactions_generic, total # to remove={possible_values_to_remove.Count}");
             return possible_values_to_remove;
         }
 
+        // see https://www.sadmansoftware.com/sudoku/xywing.php
         public static HashSet<(int, int, int)> find_x_y_wing(Cell[,] cells)
         {
-            return new HashSet<(int, int, int)> { (6, 3, 7), (7, 3, 7), (8, 3, 7), (3, 5, 7), (4, 5, 7), (5, 5, 7) };
+            HashSet<(int, int, int)> possible_values_to_remove = new HashSet<(int, int, int)>();
+
+            CoordinateList poss_pivots = SudokuGrid.find_cells_with_a_quantity_of_possible_values(cells, 2, 2);
+
+            foreach((int x, int y) pivot_coord in poss_pivots)
+            {
+                Cell pivot_cell = cells[pivot_coord.x, pivot_coord.y];
+                CoordinateList poss_branches = SudokuGrid.find_cells_with_a_quantity_of_possible_values(cells, 2, 2, SudokuGrid.get_interacting_cells(pivot_coord.x,pivot_coord.y));
+
+                //Console.Write($"pivot ({pivot_coord.x},{pivot_coord.y}) v=");
+                //foreach(int p_value in pivot_cell._possible_values)
+                //{
+                //    Console.Write($"{p_value},");
+                //}
+                //Console.WriteLine(";");
+
+                // we need at least two branches
+                if (poss_branches.Count() <= 2)
+                {
+                    continue;
+                }
+
+                // the possible branches can't contain the exact same values as the pivot
+                poss_branches = new CoordinateList( poss_branches.Except( SudokuGrid.get_coordinates_where_values_are_possible(cells, pivot_cell._possible_values, poss_branches ) ).ToList() );
+
+                // each branch should have 1 possible value in common with the pivot
+                CoordinateList poss_branch_A = SudokuGrid.get_coordinates_where_value_is_possible(cells, pivot_cell._possible_values[0], poss_branches);
+                CoordinateList poss_branch_B = SudokuGrid.get_coordinates_where_value_is_possible(cells, pivot_cell._possible_values[1], poss_branches);
+
+                foreach((int x, int y) coord_A in poss_branch_A)
+                {
+                    Cell branch_A = cells[coord_A.x, coord_A.y];
+
+                    //Console.Write($"branch_A ({coord_A.x},{coord_A.y}) v=");
+                    //foreach (int a_value in branch_A._possible_values)
+                    //{
+                    //    Console.Write($"{a_value},");
+                    //}
+                    //Console.WriteLine(";");
+
+                    // there needs to be a common value in branch A and B
+                    CoordinateList Bs_for_this_A = SudokuGrid.get_coordinates_where_possible_values_match(cells, branch_A._possible_values, poss_branch_B, SudokuGrid.match_type_intersects);
+
+                    if (Bs_for_this_A.Count() != 1 )
+                    {
+                        if (Bs_for_this_A.Count() > 1)
+                        {
+                            throw new Exception("I don't know what to do, there is more than 1 match!");
+                        } else
+                        {
+                            //Console.WriteLine("no common B");
+                            continue;
+                        }
+                    }
+
+                    (int x, int y) coord_B = Bs_for_this_A.First();
+                    Cell branch_B = cells[coord_B.x, coord_B.y];
+
+                    //Console.Write($"branch_B ({coord_B.x},{coord_B.y}) v=");
+                    //foreach (int b_value in branch_B._possible_values)
+                    //{
+                    //    Console.Write($"{b_value},");
+                    //}
+                    //Console.WriteLine(";");
+
+                    int value_common_to_A_and_B = branch_A._possible_values.Intersect(branch_B._possible_values).First();
+
+                    // cells that interact with both A and B may not have the common value
+                    CoordinateList cells_interacting_with_A_and_B = 
+                        new CoordinateList( 
+                            SudokuGrid.get_interacting_cells(coord_A.x, coord_A.y)
+                            .Intersect(SudokuGrid.get_interacting_cells(coord_B.x, coord_B.y) ).ToList() );
+
+                    // we also filter the list of coordinates to only include those that have the common value
+                    foreach ((int x, int y) coord_to_remove in SudokuGrid.get_coordinates_where_value_is_possible(cells, value_common_to_A_and_B, cells_interacting_with_A_and_B) )
+                    {
+                        possible_values_to_remove.Add((coord_to_remove.x, coord_to_remove.y, value_common_to_A_and_B));
+                    }
+                }
+            }
+
+            return possible_values_to_remove;
         }
 
         public static string format_coord_and_value_hashset(HashSet<(int, int, int)> set_to_format)

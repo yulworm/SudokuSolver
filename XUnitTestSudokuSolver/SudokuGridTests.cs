@@ -397,7 +397,7 @@ namespace XUnitTestSudokuSolver
             grid._grid_cells[1, 1]._possible_values = new List<int> { 3, 9 };
             grid._grid_cells[2, 2]._possible_values = new List<int> { 2, 3, 9 };
 
-            HashSet<int> search_vals = new HashSet<int> {2};
+            List<int> search_vals = new List<int> {2};
             CoordinateList search_coords = new CoordinateList(new int[] {0,0, 0,1, 1,1, 0,2, 7,7 });
 
             CoordinateList coords_found = SudokuGrid.get_coordinates_where_values_are_possible(grid._grid_cells, search_vals, search_coords);
@@ -405,7 +405,7 @@ namespace XUnitTestSudokuSolver
             Assert.True(coords_found.Equals(new CoordinateList(new int[] {0,0, 0,1, 0,2 })));
             Assert.False(coords_found.Equals(new CoordinateList(new int[] { 0,0 })));
 
-            search_vals = new HashSet<int> { 2, 5 };
+            search_vals = new List<int> { 2, 5 };
             
             coords_found = SudokuGrid.get_coordinates_where_values_are_possible(grid._grid_cells, search_vals, search_coords);
 
