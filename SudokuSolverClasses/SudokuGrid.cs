@@ -456,6 +456,7 @@ namespace SudokuSolver
         public const int match_type_equals = 1;
         public const int match_type_includes = 2;
         public const int match_type_intersects = 3;
+        public const int match_type_intersects_not_equal = 4;
         public static CoordinateList get_coordinates_where_possible_values_match(Cell[,] cells, List<int> values_to_look_for, CoordinateList coords_to_check, int match_type)
         {
             //Console.Write($"Starting get_coordinates_where_values_are_possible, looking for({values_to_look_for.Count})=");
@@ -479,8 +480,11 @@ namespace SudokuSolver
                 case match_type_intersects:
                     min_values = 1;
                     break;
+                case match_type_intersects_not_equal:
+                    min_values = 1;
+                    break;
             }
-                
+
             CoordinateList where_found = new CoordinateList();
 
             foreach((int x, int y) in find_cells_with_a_quantity_of_possible_values(cells, min_values, max_values, coords_to_check))
@@ -497,11 +501,21 @@ namespace SudokuSolver
 
                 if (common_vals.Count() == values_to_look_for.Count)
                 {
-                    // everything being found always counts as a win
-                    where_found.Add(x, y);
+                    if (match_type == match_type_intersects_not_equal)
+                    {
+                        if (c._possible_values.Count > values_to_look_for.Count)
+                        {
+                            // so long as there was more than what we were looking for it is still not equal, but is intersecting
+                            where_found.Add(x, y);
+                        }
+                    } else
+                    {
+                        // everything being found almost always counts as a win
+                        where_found.Add(x, y);
+                    }                    
                 } else 
                 {
-                    if (common_vals.Count() > 0 && match_type == match_type_intersects)
+                    if (common_vals.Count() > 0 && (match_type == match_type_intersects || match_type == match_type_intersects_not_equal))
                     {
                         where_found.Add(x, y);
                     }

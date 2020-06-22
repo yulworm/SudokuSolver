@@ -176,5 +176,26 @@ namespace XUnitTestSudokuSolver
             Assert.True(expected_chain_found, $"{message} expected: {System.Environment.NewLine}{expected_chain.ToString()}{System.Environment.NewLine}-----------{System.Environment.NewLine}found:{System.Environment.NewLine}{found_chains_string}");
         }
 
+        public static IEnumerable<object[]> find_x_y_chain_test_input()
+        {
+            yield return new object[] {
+                "879126354|136954782|542873060||680090040|720468010|490030806||968345000|257619438|314287695",
+                new HashSet<(int, int, int)> { (8, 3, 7), (3, 5, 7), (3, 3, 5) },
+                "1"};
+        }
+
+        [Theory]
+        [MemberData(nameof(find_x_y_chain_test_input))]
+        public void find_x_y_chain_test(string puzzle, HashSet<(int, int, int)> expected_results, string message)
+        {
+            SudokuGrid grid = new SudokuGrid(puzzle);
+            grid.set_possible_values_of_all_cells();
+            HashSet<(int, int, int)> results = SudokuHelper.find_x_y_chains(grid._grid_cells);
+
+            int a_not_b = results.Except(expected_results).Count();
+            int b_not_a = expected_results.Except(results).Count();
+
+            Assert.True(results.Count == expected_results.Count && a_not_b == 0 && b_not_a == 0, $"{message} results={SudokuHelper.format_coord_and_value_hashset(results)};");
+        }
     }
 }

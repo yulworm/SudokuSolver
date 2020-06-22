@@ -452,6 +452,70 @@ namespace SudokuSolver
             return possible_values_to_remove;
         }
 
+        public static HashSet<(int, int, int)> find_x_y_chains(Cell[,] cells)
+        {
+            HashSet<(int, int, int)> possible_to_remove = new HashSet<(int, int, int)>();
+
+            // start by getting all the cells with just 2 values
+            CoordinateList potential_starting_cells = SudokuGrid.find_cells_with_a_quantity_of_possible_values(cells, 2, 2);
+
+            foreach((int x, int y) first_link in potential_starting_cells)
+            {
+                CoordinateList start_chain = new CoordinateList(new int[] {first_link.x,first_link.y});
+
+                List<CoordinateList> chains_2_links = add_link_to_chain(cells, start_chain);
+                foreach(CoordinateList chain_2_links in chains_2_links)
+                {
+                    (int x, int y) second_link_coord = chain_2_links.Last();
+                    // this assumes there are only 2 values
+                    int x_y_value = cells[first_link.x, first_link.y]._possible_values.Except(cells[second_link_coord.x, second_link_coord.y]._possible_values).First();
+                    List<CoordinateList> complete_x_y_chains = finish_y_x_chain(cells, chain_2_links, x_y_value);
+
+                    foreach(CoordinateList x_y_chain in complete_x_y_chains)
+                    {
+                        (int x, int y) last_link_coord = x_y_chain.Last();
+
+                        // cells that interact with both first and last may not have the common value
+                        CoordinateList cells_interacting_with_first_and_last =
+                            new CoordinateList(
+                                SudokuGrid.get_interacting_cells(first_link.x, first_link.y)
+                                .Intersect(SudokuGrid.get_interacting_cells(last_link_coord.x, last_link_coord.y)).ToList());
+
+                        // we also filter the list of coordinates to only include those that have the common value
+                        foreach ((int x, int y) coord_to_remove in SudokuGrid.get_coordinates_where_value_is_possible(cells, x_y_value, cells_interacting_with_first_and_last))
+                        {
+                            possible_to_remove.Add((coord_to_remove.x, coord_to_remove.y, x_y_value));
+                        }
+
+                    }
+                }
+            }
+            return possible_to_remove;
+        }
+
+        // a chain is considered complete when the last link added contains the x_y_value as a possibility
+        private static List<CoordinateList> finish_y_x_chain(Cell[,] cells, CoordinateList start_chain, int x_y_value)
+        {
+            List<CoordinateList> complete_chains = new List<CoordinateList>();
+
+            List<CoordinateList> possible_chains = add_link_to_chain(cells, start_chain);
+            foreach (CoordinateList chain in possible_chains)
+            {
+                Cell last_cell = cells[chain.Last().Item1, chain.Last().Item2];
+
+                // if the new link has the desired value, then the chain is complete
+                if (last_cell._possible_values.Contains(x_y_value))
+                {
+                    complete_chains.Add(chain);
+                } else
+                {
+                    //otherwise we keep looking further down the chain
+                    complete_chains.Concat(finish_y_x_chain(cells, chain, x_y_value));
+                }
+            }
+
+            return complete_chains;
+        }
         public static string format_coord_and_value_hashset(HashSet<(int, int, int)> set_to_format)
         {
             string output = "";
@@ -481,7 +545,7 @@ namespace SudokuSolver
             // for now we will only look for chains where every link has the same number of possible values
             link_search_space = SudokuGrid.find_cells_with_a_quantity_of_possible_values(cells, last_link._possible_values.Count(), last_link._possible_values.Count(), link_search_space);
 
-            CoordinateList potential_links = SudokuGrid.get_coordinates_where_possible_values_match(cells, last_link._possible_values, link_search_space, SudokuGrid.match_type_intersects);
+            CoordinateList potential_links = SudokuGrid.get_coordinates_where_possible_values_match(cells, last_link._possible_values, link_search_space, SudokuGrid.match_type_intersects_not_equal);
             foreach((int x, int y) in potential_links)
             {
                 CoordinateList new_chain = new CoordinateList(chain.ToList());
