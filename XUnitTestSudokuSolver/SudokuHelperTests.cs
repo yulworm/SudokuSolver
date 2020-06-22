@@ -116,7 +116,7 @@ namespace XUnitTestSudokuSolver
             yield return new object[] {
                 "879126354|136954782|542873060||680090040|720468010|490030806||968345000|257619438|314287695",
                 new HashSet<(int, int, int)> { (8, 3, 7), (3, 5, 7), (3, 3, 5) },
-                "1"};//results=(8,3) value=7,(3,5) value=7,(3,3) value=5,
+                "1"};
         }
 
         [Theory]
@@ -131,6 +131,49 @@ namespace XUnitTestSudokuSolver
             int b_not_a = expected_results.Except(results).Count();
 
             Assert.True(results.Count == expected_results.Count && a_not_b == 0 && b_not_a == 0, $"{message} results={SudokuHelper.format_coord_and_value_hashset(results)};");
+        }
+
+        public static IEnumerable<object[]> add_link_to_chain_test_input()
+        {
+            yield return new object[] {
+                "879126354|136954782|542873060||680090040|720468010|490030806||968345000|257619438|314287695",
+                new CoordinateList(new int[] { 3,3}),
+                new CoordinateList(new int[] { 3,3, 6,3}),
+                "1"};
+            yield return new object[] {
+                "879126354|136954782|542873060||680090040|720468010|490030806||968345000|257619438|314287695",
+                new CoordinateList(new int[] { 3,3, 6,3}),
+                new CoordinateList(new int[] { 3,3, 6,3, 7,5}),
+                "2"};
+            yield return new object[] {
+                "879126354|136954782|542873060||680090040|720468010|490030806||968345000|257619438|314287695",
+                new CoordinateList(new int[] { 3,3, 6,3, 7,5}),
+                new CoordinateList(new int[] { 3,3, 6,3, 7,5, 3,5}),
+                "3"};
+        }
+
+        [Theory]
+        [MemberData(nameof(add_link_to_chain_test_input))]
+        public void add_link_to_chain_test(string puzzle, CoordinateList start_chain, CoordinateList expected_chain, string message)
+        {
+            SudokuGrid grid = new SudokuGrid(puzzle);
+            grid.set_possible_values_of_all_cells();
+            List<CoordinateList> found_chains = SudokuHelper.add_link_to_chain(grid._grid_cells, start_chain);
+
+            bool expected_chain_found = false;
+            string found_chains_string = "";
+
+            foreach (CoordinateList chain in found_chains)
+            {
+                if (chain.Equals(expected_chain))
+                {
+                    expected_chain_found = true;
+                }
+
+                found_chains_string += chain.ToString() + System.Environment.NewLine;
+            }
+
+            Assert.True(expected_chain_found, $"{message} expected: {System.Environment.NewLine}{expected_chain.ToString()}{System.Environment.NewLine}-----------{System.Environment.NewLine}found:{System.Environment.NewLine}{found_chains_string}");
         }
 
     }

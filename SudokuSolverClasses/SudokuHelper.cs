@@ -462,5 +462,34 @@ namespace SudokuSolver
             return output;
         }
 
+        // we return all the possible extensions
+        // the list will be empty if no new extensions are found
+        public static List<CoordinateList> add_link_to_chain(Cell[,] cells, CoordinateList chain)
+        {
+            List<CoordinateList> built_chains = new List<CoordinateList>();
+
+            (int x, int y) last_link_coord = chain.Last();
+            Cell last_link = cells[last_link_coord.x, last_link_coord.y];
+            
+            CoordinateList link_search_space = new CoordinateList(
+                // the next link will be in a cell that interacts with the current end
+                SudokuGrid.get_interacting_cells(last_link_coord.x, last_link_coord.y)
+                // but it must not already be part of the chain
+                .Except(chain)
+                .ToList());
+
+            // for now we will only look for chains where every link has the same number of possible values
+            link_search_space = SudokuGrid.find_cells_with_a_quantity_of_possible_values(cells, last_link._possible_values.Count(), last_link._possible_values.Count(), link_search_space);
+
+            CoordinateList potential_links = SudokuGrid.get_coordinates_where_possible_values_match(cells, last_link._possible_values, link_search_space, SudokuGrid.match_type_intersects);
+            foreach((int x, int y) in potential_links)
+            {
+                CoordinateList new_chain = new CoordinateList(chain.ToList());
+                new_chain.Add(x, y);
+                built_chains.Add(new_chain);
+            }
+
+            return built_chains;
+        }
     }
 }
