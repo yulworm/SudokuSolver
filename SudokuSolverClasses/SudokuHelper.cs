@@ -5,12 +5,20 @@ using SudokuSolver;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+//using Microsoft.Extensions.Logging;
+using NLog;
+using System.Diagnostics;
 
 namespace SudokuSolver
 {
     public class SudokuHelper
     {
+        private static ILogger _logger = LogManager.GetCurrentClassLogger();
 
+        //public SudokuHelper(ILogger logger)
+        //{
+        //    _logger = logger;
+        //}
         public static Cell[,] set_value_for_naked_singles(Cell[,] grid)
         {
             //Console.WriteLine("set_value_for_naked_singles begin");
@@ -31,6 +39,8 @@ namespace SudokuSolver
 
         public static SudokuGrid solve_grid(SudokuGrid grid)
         {
+            _logger.Info("Started solve_grid");
+
             SudokuGrid prev_grid = (SudokuGrid)grid.Clone();
             bool grid_changed = true;
 

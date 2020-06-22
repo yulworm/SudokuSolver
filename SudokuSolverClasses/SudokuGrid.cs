@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks.Dataflow;
 using System.Net.Http.Headers;
+using NLog;
 
 namespace SudokuSolver
 {
     public class SudokuGrid : ICloneable
     {
+        private static ILogger _logger = LogManager.GetCurrentClassLogger();
+
         public Cell[,] _grid_cells { get; set; }
 
         public static int min_x = 0;
@@ -322,16 +325,12 @@ namespace SudokuSolver
         }
         public static Cell[,] set_cell_value_and_update_possible_values(Cell[,] grid, int x, int y, int new_value)
         {
-            //Console.WriteLine($"set_cell_value_and_update_possible_values ({x},{y}) {new_value}");
+            _logger.Debug($"set_cell_value_and_update_possible_values ({x},{y}) {new_value}");
+
             grid[x, y]._value = new_value;
             grid[x, y]._possible_values.Clear();
 
             grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_interacting_cells(x, y));
-            //grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_all_coordinates_for_row(x,y));
-
-            //grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_other_coordinates_for_column(x, y));
-
-            //grid = remove_value_from_permitted_values_in_cells(grid, new_value, get_other_coordinates_for_block(x, y));
 
             return grid;
         }

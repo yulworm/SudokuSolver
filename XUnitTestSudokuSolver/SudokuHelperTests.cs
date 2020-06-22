@@ -9,6 +9,8 @@ namespace XUnitTestSudokuSolver
 {
     public class SudokuHelperTests
     {
+        //private Mock<SudokuHelper> _sudoku_helper;
+
         [Fact]
         public void find_hidden_singles_test()
         {
